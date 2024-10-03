@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css" />
+    <script src="script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <title>Oscars Dashboard</title>
+  </head>
+  <body onload="init()">
+    <div class="button-container">
+      <button onclick="updateDashboard('old')">Old Data</button>
+      <button onclick="updateDashboard('new')">New Data</button>
+      <button onclick="updateDashboard('all')">All Data</button>
+    </div>
+    <div class="container">
+      <div class="BarChart"></div>
+      <div class="LineChart"></div>
+      <div class="ScatterPlot"></div>
+    </div>
+  </body>
+</html>

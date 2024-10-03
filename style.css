@@ -1,0 +1,37 @@
+.container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 0px 0px;
+  grid-template-areas:
+    "BarChart ScatterPlot"
+    "LineChart LineChart";
+}
+.BarChart {
+  grid-area: BarChart;
+}
+.LineChart {
+  grid-area: LineChart;
+}
+.ScatterPlot {
+  grid-area: ScatterPlot;
+}
+html,
+body {
+  height: 100%;
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+.button-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 10vh; /* Full viewport height */
+}
+.button-container button {
+  margin: 0 10px; /* Optional, for spacing between buttons */
+}
+
+button {
+  font-size: 20px;
+}

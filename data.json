@@ -1,0 +1,146 @@
+[
+  {
+    "oscar_year": 2023,
+    "title": "Oppenheimer",
+    "rating": 8.3,
+    "budget": 100000000
+  },
+  {
+    "oscar_year": 2022,
+    "title": "Everything Everywhere All at Once",
+    "rating": 7.8,
+    "budget": 25000000
+  },
+  {
+    "oscar_year": 2021,
+    "title": "Nomadland",
+    "rating": 7.3,
+    "budget": 5000000
+  },
+  {
+    "oscar_year": 2020,
+    "title": "Parasite",
+    "rating": 8.6,
+    "budget": 11300000
+  },
+  {
+    "oscar_year": 2019,
+    "title": "Green Book",
+    "rating": 8.2,
+    "budget": 23000000
+  },
+  {
+    "oscar_year": 2018,
+    "title": "The Shape of Water",
+    "rating": 7.3,
+    "budget": 19500000
+  },
+  {
+    "oscar_year": 2017,
+    "title": "Moonlight",
+    "rating": 7.4,
+    "budget": 15000000
+  },
+  {
+    "oscar_year": 2016,
+    "title": "Spotlight",
+    "rating": 8.1,
+    "budget": 20000000
+  },
+  {
+    "oscar_year": 2015,
+    "title": "Birdman",
+    "rating": 7.7,
+    "budget": 18000000
+  },
+  {
+    "oscar_year": 2014,
+    "title": "12 Years a Slave",
+    "rating": 8.2,
+    "budget": 20000000
+  },
+  {
+    "oscar_year": 2013,
+    "title": "Argo",
+    "rating": 7.8,
+    "budget": 44500000
+  },
+  {
+    "oscar_year": 2012,
+    "title": "The Artist",
+    "rating": 8,
+    "budget": 15000000
+  },
+  {
+    "oscar_year": 2011,
+    "title": "The King's Speech",
+    "rating": 8.1,
+    "budget": 15000000
+  },
+  {
+    "oscar_year": 2010,
+    "title": "The Hurt Locker",
+    "rating": 7.6,
+    "budget": 15000000
+  },
+  {
+    "oscar_year": 2009,
+    "title": "Slumdog Millionaire",
+    "rating": 8.1,
+    "budget": 15000000
+  },
+  {
+    "oscar_year": 2008,
+    "title": "No Country for Old Men",
+    "rating": 8.2,
+    "budget": 25000000
+  },
+  {
+    "oscar_year": 2007,
+    "title": "The Departed",
+    "rating": 8.5,
+    "budget": 90000000
+  },
+  {
+    "oscar_year": 2006,
+    "title": "Crash",
+    "rating": 8.3,
+    "budget": 6500000
+  },
+  {
+    "oscar_year": 2005,
+    "title": "Million Dollar Baby",
+    "rating": 8.3,
+    "budget": 30000000
+  },
+  {
+    "oscar_year": 2004,
+    "title": "The Lord of the Rings: The Return of the King",
+    "rating": 9,
+    "budget": 94000000
+  },
+  {
+    "oscar_year": 2003,
+    "title": "Chicago",
+    "rating": 7.5,
+    "budget": 45000000
+  },
+  {
+    "oscar_year": 2002,
+    "title": "A Beautiful Mind",
+    "rating": 7.8,
+    "budget": 60000000
+  },
+  {
+    "oscar_year": 2001,
+    "title": "Gladiator",
+    "rating": 8,
+    "budget": 103000000
+  },
+  {
+    "oscar_year": 2000,
+    "title": "American Beauty",
+    "rating": 8.5,
+    "budget": 15000000
+  }
+]
