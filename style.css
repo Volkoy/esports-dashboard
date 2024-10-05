@@ -1,11 +1,24 @@
-.container {
+.title_container {
+  display: flex;
+}
+.title_container > h1{
+  align-self: center;
+  padding-left: 28%;
+  font-size: 2.5rem;
+}
+.visual_container{
+  display: inline;
+}
+.filter_container{
+  background-color: aqua;
+}
+.chart_container {
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 1fr;
   gap: 0px 0px;
   grid-template-areas:
-    "BarChart ScatterPlot"
-    "LineChart LineChart";
+    "LineChart";
 }
 .BarChart {
   grid-area: BarChart;

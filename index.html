@@ -6,18 +6,26 @@
     <link rel="stylesheet" href="style.css" />
     <script src="script.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
-    <title>Oscars Dashboard</title>
+    <title>History and Evolution of Esports Industry</title>
   </head>
   <body onload="init()">
-    <div class="button-container">
+    <!--<div class="button-container">
       <button onclick="updateDashboard('old')">Old Data</button>
       <button onclick="updateDashboard('new')">New Data</button>
       <button onclick="updateDashboard('all')">All Data</button>
+    </div>-->
+    <div class="title_container">
+      <img src="logo.jpg" alt="Tecnico_Logo" width="450" height="300">
+      <h1>History and Evolution of Esports Industry</h1>
     </div>
-    <div class="container">
-      <div class="BarChart"></div>
-      <div class="LineChart"></div>
-      <div class="ScatterPlot"></div>
+    <div class="visual_container">
+      <div class="filter_container">
+      </div>
+      <div class="chart_container">
+        <div class="LineChart"></div>
+        <!--<div class="BarChart"></div>
+        <div class="ScatterPlot"></div>-->
+      </div>
     </div>
   </body>
 </html>
