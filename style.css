@@ -1,50 +1,167 @@
-.title_container {
-  display: flex;
-}
-.title_container > h1{
-  align-self: center;
-  padding-left: 28%;
-  font-size: 2.5rem;
-}
-.visual_container{
-  display: inline;
-}
-.filter_container{
-  background-color: aqua;
-}
-.chart_container {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
-  gap: 0px 0px;
-  grid-template-areas:
-    "LineChart";
-}
-.BarChart {
-  grid-area: BarChart;
-}
-.LineChart {
-  grid-area: LineChart;
-}
-.ScatterPlot {
-  grid-area: ScatterPlot;
-}
-html,
-body {
-  height: 100%;
-  margin: 0;
-  font-family: Arial, sans-serif;
-}
-.button-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 10vh; /* Full viewport height */
-}
-.button-container button {
-  margin: 0 10px; /* Optional, for spacing between buttons */
+/* Box sizing rules */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
-button {
-  font-size: 20px;
+/* Remove default padding */
+ul[class],
+ol[class] {
+  padding: 0;
+}
+
+/* Remove default margin */
+body,
+h1,
+h2,
+h3,
+h4,
+p,
+ul[class],
+ol[class],
+li,
+figure,
+figcaption,
+blockquote,
+dl,
+dd {
+  margin: 0;
+}
+
+/* Set core body defaults */
+body {
+  min-height: 100vh;
+  scroll-behavior: smooth;
+  text-rendering: optimizeSpeed;
+  line-height: 1.5;
+  font-family: "Franklin Gothic Medium", "Arial Narrow", Arial, sans-serif;
+  background-color: #f6f6f6;
+}
+
+/* Remove list styles on ul, ol elements with a class attribute */
+ul[class],
+ol[class] {
+  list-style: none;
+}
+
+/* A elements that don't have a class get default styles */
+a:not([class]) {
+  text-decoration-skip-ink: auto;
+}
+
+/* Make images easier to work with */
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* Natural flow and rhythm in articles by default */
+article > * + * {
+  margin-top: 1em;
+}
+
+/* Inherit fonts for inputs and buttons */
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+.title_container {
+  height: 5rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  background-color: white;
+  gap: 4rem;
+}
+
+.logo {
+  height: 100%;
+}
+
+.logo img {
+  height: 100%;
+}
+
+.title {
+  font-size: 0.75em;
+}
+
+.visual_container {
+  height: calc(100vh - 5rem);
+}
+
+.first_row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  height: 50%;
+  gap: 1rem;
+  padding: 0.5rem 1rem;
+}
+
+.filter_container {
+  display: flex;
+  width: 20%;
+  height: 100%;
+  background-color: white;
+  border-radius: 1em;
+  padding: 1rem;
+}
+
+.chart_container {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  height: 100%;
+  width: 100%;
+  gap: 1rem;
+}
+
+.LineChart {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  background-color: white;
+  border-radius: 1rem;
+}
+
+.Strip {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  border-radius: 1rem;
+  padding: 1rem;
+  background-color: white;
+}
+
+.Strip img {
+  width: 100%;
+  height: 100%;
+}
+
+.second_row {
+  display: flex;
+  align-items: flex-start;
+  height: 50%;
+  padding: 0.5rem 1rem;
+}
+
+.parallel_coords {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+
+.parallel_coords img {
+  height: 100%;
+  width: 100%;
+  object-fit: fill;
 }

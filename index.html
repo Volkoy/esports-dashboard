@@ -15,16 +15,27 @@
       <button onclick="updateDashboard('all')">All Data</button>
     </div>-->
     <div class="title_container">
-      <img src="logo.jpg" alt="Tecnico_Logo" width="450" height="300">
-      <h1>History and Evolution of Esports Industry</h1>
+      <div class="logo">
+        <img src="logo.jpg" alt="Tecnico_Logo">
+      </div>
+      <div class="title">
+        <h1>History and Evolution of Esports Industry</h1>
+      </div>
     </div>
     <div class="visual_container">
-      <div class="filter_container">
+      <div class="first_row">
+        <div class="filter_container"></div>
+        <div class="chart_container">
+          <div class="LineChart" id="LineChart"></div>
+          <div class="Strip">
+            <img src="strip.png" alt="strip">
+          </div>
+        </div>
       </div>
-      <div class="chart_container">
-        <div class="LineChart"></div>
-        <!--<div class="BarChart"></div>
-        <div class="ScatterPlot"></div>-->
+      <div class="second_row">
+        <div class="parallel_coords">
+          <img src="parallel.png" alt="parallel">
+        </div>
       </div>
     </div>
   </body>
