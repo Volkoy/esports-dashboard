@@ -1,5 +1,22 @@
 var globalData;
+var genres;
+var selectedGenres;
+var years;
 
+var colorScheme = {
+  "Strategy": "#a7cde3",
+  "First-Person Shooter": "#2b77b3",
+  "Sports": "#afdd8f",
+  "Fighting Game": "#299d39",
+  "Racing": "#fb9f97",
+  "Multiplayer Online Battle Arena": "#e23703",
+  "Role-Playing Game": "#fbc171",
+  "Third-Person Shooter": "#fe8600",
+  "Music / Rhythm Game": "#cbb3d5",
+  "Collectible Card Game": "#6d4198",
+  "Puzzle Game": "#fcfe9e",
+  "Battle Royale": "#b05e26",
+};
 // Initialization of the dashboard
 function init() {
   d3.json("esports.json").then(function (data) {
@@ -38,7 +55,6 @@ function createLineChart(data) {
     (d) => d.Genre,
     (d) => d.Year
   );
-
   // Format data
   const formattedData = Array.from(aggregatedData, ([genre, yearMap]) => ({
     genre: genre,
@@ -47,8 +63,10 @@ function createLineChart(data) {
       Earnings: earnings,
     })),
   }));
-
-  const years = [...new Set(data.map((d) => d.Year))];
+  years = [...new Set(data.map((d) => d.Year))];
+  genres = [...new Set(data.map((d) => d.Genre))];
+  selectedGenres = [];
+  selectedGenres = genres;
 
   const xScale = d3
     .scalePoint()
@@ -166,6 +184,19 @@ function createLineChart(data) {
     .on("change", function () {
       const checked = d3.select(this).property("checked");
       toggleAllLinesVisibility(checked);
+      if (checked) {
+        selectedGenres = genres;
+        let updatedData = formattedData.filter((g) =>
+          selectedGenres.includes(g.genre)
+        );
+        updateLineChart(updatedData);
+      } else {
+        selectedGenres = [];
+        let updatedData = formattedData.filter((g) =>
+          selectedGenres.includes(g.genre)
+        );
+        updateLineChart(updatedData);
+      }
     });
 
   const checkAll = d3.select("#all");
@@ -191,6 +222,21 @@ function createLineChart(data) {
         .on("change", function () {
           const checked = d3.select(this).property("checked");
           toggleLineVisibility(i, checked);
+          if (checked) {
+            selectedGenres.push(d.genre);
+            let updatedData = formattedData.filter((g) =>
+              selectedGenres.includes(g.genre)
+            );
+            updateLineChart(updatedData);
+          } else {
+            selectedGenres = selectedGenres.filter(
+              (genre) => genre !== d.genre
+            );
+            let updatedData = formattedData.filter((g) =>
+              selectedGenres.includes(g.genre)
+            );
+            updateLineChart(updatedData);
+          }
         });
 
       // Add color circle before checkbox
@@ -210,13 +256,15 @@ function createLineChart(data) {
   const selectedLines = [];
   // Draw lines and circles for each genre
   formattedData.forEach((genreData, index) => {
+    const genreColor = colorScheme[genreData.genre];
     const path = svg
       .append("path")
       .datum(genreData.values)
       .attr("class", `line line-${index}`)
+      .attr("id", `${genreData.genre}`)
       .attr("d", line)
       .attr("fill", "none")
-      .attr("stroke", color(index))
+      .attr("stroke", genreColor)
       .attr("stroke-width", 3)
       .style("opacity", 1) // Set initial opacity to full
       .style("cursor", "pointer") // Change cursor to pointer
@@ -239,40 +287,28 @@ function createLineChart(data) {
         tooltip.transition().duration(200).style("opacity", 0);
       })
       .on("click", function () {
-        const isSelected = selectedLines.includes(index);
+        const isSelected = selectedLines.includes(genreData.genre);
 
         if (isSelected) {
-          // If the line is already selected, remove it from the array
-          selectedLines.splice(selectedLines.indexOf(index), 1);
+            // If the line is already selected, remove it from the array
+            selectedLines.splice(selectedLines.indexOf(genreData.genre), 1);
         } else {
-          // If not, add it to the selected array
-          selectedLines.push(index);
+            // If not, add it to the selected array
+            selectedLines.push(genreData.genre);
         }
 
         // Set opacity for all lines
-        svg.selectAll(".line").each(function (_, i) {
-          if (selectedLines.includes(i)) {
-            d3.select(this).style("opacity", 1); // Full opacity for selected lines
-          } else {
-            d3.select(this).style(
-              "opacity",
-              selectedLines.length > 0 ? 0.2 : 1
-            ); // Lower opacity for unselected lines, full opacity if no selection
-          }
+        svg.selectAll(".line").each(function () {
+            const lineGenre = d3.select(this).attr("id"); // Get genre from line ID
+            d3.select(this).style("opacity", selectedLines.includes(lineGenre) ? 1 : 0.2);
         });
 
         // Set opacity for all circles
-        svg.selectAll(".circle").each(function (_, i) {
-          if (selectedLines.includes(i)) {
-            d3.select(this).style("opacity", 1); // Full opacity for selected circles
-          } else {
-            d3.select(this).style(
-              "opacity",
-              selectedLines.length > 0 ? 0.2 : 1
-            ); // Lower opacity for unselected circles, full opacity if no selection
-          }
+        svg.selectAll(".circle").each(function () {
+            const circleGenre = d3.select(this).attr("id"); // Assuming circles have IDs matching their genres
+            d3.select(this).style("opacity", selectedLines.includes(circleGenre) ? 1 : 0.2);
         });
-      });
+    });
 
     svg
       .selectAll(`.circle-${index}`)
@@ -280,6 +316,7 @@ function createLineChart(data) {
       .enter()
       .append("circle")
       .attr("class", `circle circle-${index}`)
+      .attr("id", `${genreData.genre}`)
       .attr("r", 5)
       .style("cursor", "pointer")
       .attr("cx", (d) => xScale(d.Year))
@@ -315,7 +352,29 @@ function createLineChart(data) {
           .style("stroke", "none");
 
         tooltip.transition().duration(200).style("opacity", 0);
-      });
+      }).on("click", function () {
+        const isSelected = selectedLines.includes(genreData.genre);
+
+        if (isSelected) {
+            // If the line is already selected, remove it from the array
+            selectedLines.splice(selectedLines.indexOf(genreData.genre), 1);
+        } else {
+            // If not, add it to the selected array
+            selectedLines.push(genreData.genre);
+        }
+
+        // Set opacity for all lines
+        svg.selectAll(".line").each(function () {
+            const lineGenre = d3.select(this).attr("id"); // Get genre from line ID
+            d3.select(this).style("opacity", selectedLines.includes(lineGenre) ? 1 : 0.2);
+        });
+
+        // Set opacity for all circles
+        svg.selectAll(".circle").each(function () {
+            const circleGenre = d3.select(this).attr("id"); // Assuming circles have IDs matching their genres
+            d3.select(this).style("opacity", selectedLines.includes(circleGenre) ? 1 : 0.2);
+        });
+    });;
   });
 
   // X and Y axes
@@ -347,10 +406,6 @@ function createLineChart(data) {
     .text("Earnings");
 
   function toggleLineVisibility(index, visible) {
-    const display = visible ? null : "none"; // 'null' shows, 'none' hides
-    d3.select(`.line-${index}`).style("display", display);
-    d3.selectAll(`.circle-${index}`).style("display", display);
-
     // Check if "All" checkbox should be checked/unchecked
     checkAllBoxState();
   }
@@ -366,6 +421,216 @@ function createLineChart(data) {
   // Function to check/uncheck "All" checkbox based on individual selections
   function checkAllBoxState() {
     const allChecked = formattedData.every((_, index) =>
+      d3.select(`#checkbox-${index}`).property("checked")
+    );
+    d3.select("#checkbox-all").property("checked", allChecked);
+  }
+}
+
+function updateLineChart(data) {
+  const container = d3.select(".LineChart");
+
+  d3.select("svg").remove();
+
+  const svgWidth = container.node().getBoundingClientRect().width;
+  const svgHeight = container.node().getBoundingClientRect().height;
+  const margin = 70;
+
+  const color = d3.scaleOrdinal(d3.schemePaired);
+
+  const xScale = d3
+    .scalePoint()
+    .domain(years)
+    .range([margin, svgWidth - margin * 0.5]);
+
+  const yScale = d3
+    .scaleLinear()
+    .domain([
+      0,
+      d3.max(data, (genreData) => d3.max(genreData.values, (d) => d.Earnings)),
+    ])
+    .range([svgHeight - margin, margin * 0.15]);
+
+  const svg = d3
+    .select(".LineChart")
+    .append("svg")
+    .attr("width", svgWidth)
+    .attr("height", svgHeight);
+
+  const line = d3
+    .line()
+    .x((d) => xScale(d.Year))
+    .y((d) => yScale(d.Earnings));
+
+  console.log(xScale);
+
+  data.forEach((genreData, index) => {
+    const genreColor = colorScheme[genreData.genre];
+    selectedLines = []
+    svg
+      .append("path")
+      .datum(genreData.values)
+      .attr("class", `line line-${index}`)
+      .attr("id", `${genreData.genre}`)
+      .attr("d", line)
+      .attr("fill", "none")
+      .attr("stroke", genreColor)
+      .attr("stroke-width", 3)
+      .style("opacity", 1) // Set initial opacity to full
+      .style("cursor", "pointer") // Change cursor to pointer
+      .on("mouseover", function () {
+        d3.select(this).transition().duration(200).attr("stroke-width", 5);
+
+        tooltip.transition().duration(200).style("opacity", 1);
+        tooltip
+          .html(`Genre: ${genreData.genre}`)
+          .style("left", `${d3.event.pageX + 10}px`)
+          .style("top", `${d3.event.pageY - 20}px`);
+      })
+      .on("mousemove", function () {
+        tooltip
+          .style("left", `${d3.event.pageX + 10}px`)
+          .style("top", `${d3.event.pageY - 20}px`);
+      })
+      .on("mouseleave", function () {
+        d3.select(this).transition().duration(200).attr("stroke-width", 3);
+        tooltip.transition().duration(200).style("opacity", 0);
+      })
+      .on("click", function () {
+        const isSelected = selectedLines.includes(genreData.genre);
+
+        if (isSelected) {
+            // If the line is already selected, remove it from the array
+            selectedLines.splice(selectedLines.indexOf(genreData.genre), 1);
+        } else {
+            // If not, add it to the selected array
+            selectedLines.push(genreData.genre);
+        }
+
+        // Set opacity for all lines
+        svg.selectAll(".line").each(function () {
+            const lineGenre = d3.select(this).attr("id"); // Get genre from line ID
+            d3.select(this).style("opacity", selectedLines.includes(lineGenre) ? 1 : 0.2);
+        });
+
+        // Set opacity for all circles
+        svg.selectAll(".circle").each(function () {
+            const circleGenre = d3.select(this).attr("id"); // Assuming circles have IDs matching their genres
+            d3.select(this).style("opacity", selectedLines.includes(circleGenre) ? 1 : 0.2);
+        });
+    });
+
+    svg
+      .selectAll(`.circle-${index}`)
+      .data(genreData.values)
+      .enter()
+      .append("circle")
+      .attr("class", `circle circle-${index}`)
+      .attr("id", `${genreData.genre}`)
+      .attr("r", 5)
+      .style("cursor", "pointer")
+      .attr("cx", (d) => xScale(d.Year))
+      .attr("cy", (d) => yScale(d.Earnings))
+      .style("fill", genreColor)
+      .on("mouseover", function (event, d) {
+        d3.select(this)
+          .transition()
+          .duration(200)
+          .attr("r", 8)
+          .style("stroke", "black")
+          .style("stroke-width", 2);
+        const formattedEarnings = new Intl.NumberFormat("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }).format(d.Earnings);
+        tooltip.transition().duration(200).style("opacity", 1);
+        tooltip
+          .html(`Year: ${d.Year} <br>Earnings: $${formattedEarnings}`)
+          .style("left", `${d3.event.pageX + 10}px`)
+          .style("top", `${d3.event.pageY - 20}px`);
+      })
+      .on("mousemove", function () {
+        tooltip
+          .style("left", `${d3.event.pageX + 10}px`)
+          .style("top", `${d3.event.pageY - 20}px`);
+      })
+      .on("mouseleave", function () {
+        d3.select(this)
+          .transition()
+          .duration(200)
+          .attr("r", 5)
+          .style("stroke", "none");
+
+        tooltip.transition().duration(200).style("opacity", 0);
+      }).on("click", function () {
+        const isSelected = selectedLines.includes(genreData.genre);
+
+        if (isSelected) {
+            // If the line is already selected, remove it from the array
+            selectedLines.splice(selectedLines.indexOf(genreData.genre), 1);
+        } else {
+            // If not, add it to the selected array
+            selectedLines.push(genreData.genre);
+        }
+
+        // Set opacity for all lines
+        svg.selectAll(".line").each(function () {
+            const lineGenre = d3.select(this).attr("id"); // Get genre from line ID
+            d3.select(this).style("opacity", selectedLines.includes(lineGenre) ? 1 : 0.2);
+        });
+
+        // Set opacity for all circles
+        svg.selectAll(".circle").each(function () {
+            const circleGenre = d3.select(this).attr("id"); // Assuming circles have IDs matching their genres
+            d3.select(this).style("opacity", selectedLines.includes(circleGenre) ? 1 : 0.2);
+        });
+    });;
+  });
+
+  // X and Y axes
+  svg
+    .append("g")
+    .attr("class", "xAxis")
+    .attr("transform", `translate(0,${svgHeight - margin})`)
+    .call(d3.axisBottom(xScale));
+
+  svg
+    .append("g")
+    .attr("class", "yAxis")
+    .attr("transform", `translate(${margin},0)`)
+    .call(d3.axisLeft(yScale).tickFormat(d3.format(".2s")));
+
+  svg
+    .append("text")
+    .attr("x", svgWidth / 2)
+    .attr("y", svgHeight - margin / 2)
+    .attr("text-anchor", "middle")
+    .text("Years");
+
+  svg
+    .append("text")
+    .attr("x", -svgHeight / 2 + margin / 2)
+    .attr("y", margin / 3)
+    .attr("text-anchor", "middle")
+    .attr("transform", "rotate(-90)")
+    .text("Earnings");
+
+  function toggleLineVisibility(index, visible) {
+    // Check if "All" checkbox should be checked/unchecked
+    checkAllBoxState();
+  }
+
+  // Function to toggle all lines
+  function toggleAllLinesVisibility(visible) {
+    data.forEach((_, index) => {
+      d3.select(`#checkbox-${index}`).property("checked", visible);
+      toggleLineVisibility(index, visible);
+    });
+  }
+
+  // Function to check/uncheck "All" checkbox based on individual selections
+  function checkAllBoxState() {
+    const allChecked = data.every((_, index) =>
       d3.select(`#checkbox-${index}`).property("checked")
     );
     d3.select("#checkbox-all").property("checked", allChecked);
