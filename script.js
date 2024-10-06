@@ -2,7 +2,7 @@ var globalData;
 var genres;
 var selectedGenres;
 var years;
-
+var selectedLines = [];
 var colorScheme = {
   "Strategy": "#a7cde3",
   "First-Person Shooter": "#2b77b3",
@@ -17,12 +17,109 @@ var colorScheme = {
   "Puzzle Game": "#fcfe9e",
   "Battle Royale": "#b05e26",
 };
+
+
+var minRange, maxRange;
+var isAdjusted = false;
+
+function yearFilter() {
+  let minRangeValueGap = 2;
+
+  const range = document.getElementById("range_track");
+  const minval = document.querySelector(".minvalue");
+  const maxval = document.querySelector(".maxvalue");
+  const rangeInput = document.querySelectorAll(".min, .max");
+
+  let minYear = 1998; // Set the starting year
+  let maxYear = 2023; // Set the ending year
+  
+
+  const minRangeFill = () => {
+    // Calculate the left position based on the current year range
+    range.style.left =
+      ((rangeInput[0].value - minYear) / (maxYear - minYear)) * 100 + "%";
+  };
+  const maxRangeFill = () => {
+    // Calculate the right position based on the current year range
+    range.style.right =
+      100 - ((rangeInput[1].value - minYear) / (maxYear - minYear)) * 100 + "%";
+  };
+
+  const setMinValueOutput = () => {
+    minRange = parseInt(rangeInput[0].value);
+    minval.innerHTML = rangeInput[0].value;
+  };
+  const setMaxValueOutput = () => {
+    maxRange = parseInt(rangeInput[1].value);
+    maxval.innerHTML = rangeInput[1].value;
+  };
+
+  setMinValueOutput();
+  setMaxValueOutput();
+  minRangeFill();
+  maxRangeFill();
+
+  rangeInput.forEach((input) => {
+    input.addEventListener("input", (e) => {
+      let filtered = globalData;
+      setMinValueOutput();
+      setMaxValueOutput();
+      minRangeFill();
+      maxRangeFill();
+      filtered = globalData.filter((d)=> d.Year >= minRange && d.Year <= maxRange)
+      years = [...new Set(filtered.map((d) => d.Year))];
+      updateLineChart(switchEarningData(filtered));
+      if (maxRange - minRange < minRangeValueGap) {
+        if (e.target.className === "min") {
+          rangeInput[0].value = maxRange - minRangeValueGap;
+          setMinValueOutput();
+          minRangeFill();
+          e.target.style.zIndex = "2";
+        } else {
+          rangeInput[1].value = minRange + minRangeValueGap;
+          e.target.style.zIndex = "2";
+          setMaxValueOutput();
+          maxRangeFill();
+        }
+      }
+    });
+  });
+}
+
 // Initialization of the dashboard
 function init() {
   d3.json("esports.json").then(function (data) {
     globalData = data;
+    yearFilter()
     createLineChart(globalData);
   });
+}
+
+function switchEarningData(data)  {
+  let aggregatedData;
+  if (isAdjusted) {
+    aggregatedData = d3.rollup(
+      data,
+      (v) => d3.sum(v, (d) => d.AdjustedEarnings),
+      (d) => d.Genre,
+      (d) => d.Year
+    );
+  }else {
+    aggregatedData = d3.rollup(
+      data,
+      (v) => d3.sum(v, (d) => d.Earnings),
+      (d) => d.Genre,
+      (d) => d.Year
+    );
+  }
+  const formattedData = Array.from(aggregatedData, ([genre, yearMap]) => ({
+    genre: genre,
+    values: Array.from(yearMap, ([year, earnings]) => ({
+      Year: year,
+      Earnings: earnings,
+    })),
+  }));
+  return formattedData;
 }
 
 // Create visual idioms
@@ -48,21 +145,8 @@ function createLineChart(data) {
     .style("pointer-events", "none")
     .style("opacity", 0);
 
-  // Aggregate data by Genre and Year, summing Earnings
-  const aggregatedData = d3.rollup(
-    data,
-    (v) => d3.sum(v, (d) => d.Earnings),
-    (d) => d.Genre,
-    (d) => d.Year
-  );
-  // Format data
-  const formattedData = Array.from(aggregatedData, ([genre, yearMap]) => ({
-    genre: genre,
-    values: Array.from(yearMap, ([year, earnings]) => ({
-      Year: year,
-      Earnings: earnings,
-    })),
-  }));
+  
+  const formattedData = switchEarningData(data, false);
   years = [...new Set(data.map((d) => d.Year))];
   genres = [...new Set(data.map((d) => d.Genre))];
   selectedGenres = [];
@@ -94,7 +178,7 @@ function createLineChart(data) {
   d3.select(".title_line")
     .append("h3")
     .style("margin-left", `42px`)
-    .text("Earnings per Year per Genre");
+    .text("Earnings per Year by Genre");
 
   d3.select(".title_line")
     .append("div")
@@ -103,6 +187,7 @@ function createLineChart(data) {
     .style("border-radius", ".5em")
     .style("padding", ".125em")
     .style("margin-right", "1em");
+
   d3.select(".linechart-buttons")
     .append("button")
     .text("Not Adjusted")
@@ -111,13 +196,21 @@ function createLineChart(data) {
     .style("border", "none")
     .style("border-radius", ".5em")
     .style("color", "white")
+    .property("disabled", true)
     .on("click", function () {
+      isAdjusted = false;
       d3.select(".not-adjusted")
         .style("background-color", "blue")
-        .style("color", "white");
+        .style("color", "white")
+        .property("disabled", true);
       d3.select(".adjusted")
         .style("background-color", "lightgrey")
-        .style("color", "black");
+        .style("color", "black")
+        .property("disabled", false);
+        let updatedData = switchEarningData(data);
+        updatedData = updatedData.filter((g) =>
+          selectedGenres.includes(g.genre));
+        updateLineChart(updatedData)
     });
   d3.select(".linechart-buttons")
     .append("button")
@@ -127,29 +220,21 @@ function createLineChart(data) {
     .style("background-color", "lightgrey")
     .style("border", "none")
     .style("border-radius", ".5em")
+    .property("disabled", false)
     .on("click", function () {
+      isAdjusted = true;
       d3.select(".adjusted")
         .style("background-color", "blue")
-        .style("color", "white");
+        .style("color", "white")
+        .property("disabled", true);
       d3.select(".not-adjusted")
         .style("background-color", "lightgrey")
-        .style("color", "black");
-
-      const adjusteddData = d3.rollup(
-        data,
-        (v) => d3.sum(v, (d) => d.AdjustedEarnings),
-        (d) => d.Genre,
-        (d) => d.Year
-      );
-      const updatedData = Array.from(adjusteddData, ([genre, yearMap]) => ({
-        genre: genre,
-        values: Array.from(yearMap, ([year, AdjustedEarnings]) => ({
-          Year: year,
-          Earnings: AdjustedEarnings,
-        })),
-      }));
-
-      updateLineChart(updatedData);
+        .style("color", "black")
+        .property("disabled", false);
+      let updatedData = switchEarningData(data)
+      updatedData = updatedData.filter((g) =>
+        selectedGenres.includes(g.genre));
+      updateLineChart(updatedData)
     });
 
   const svg = d3
@@ -253,7 +338,6 @@ function createLineChart(data) {
       div.append("label").attr("for", `checkbox-${i}`).text(d.genre);
     });
 
-  const selectedLines = [];
   // Draw lines and circles for each genre
   formattedData.forEach((genreData, index) => {
     const genreColor = colorScheme[genreData.genre];
@@ -429,7 +513,7 @@ function createLineChart(data) {
 
 function updateLineChart(data) {
   const container = d3.select(".LineChart");
-
+  console.log("update data")
   d3.select("svg").remove();
 
   const svgWidth = container.node().getBoundingClientRect().width;
@@ -466,7 +550,19 @@ function updateLineChart(data) {
 
   data.forEach((genreData, index) => {
     const genreColor = colorScheme[genreData.genre];
-    selectedLines = []
+  
+    const tooltip = d3
+    .select(".LineChart")
+    .append("div")
+    .attr("class", "tooltip")
+    .style("position", "absolute")
+    .style("padding", "8px")
+    .style("background-color", "white")
+    .style("border", "1px solid #ccc")
+    .style("border-radius", "4px")
+    .style("pointer-events", "none")
+    .style("opacity", 0);
+
     svg
       .append("path")
       .datum(genreData.values)

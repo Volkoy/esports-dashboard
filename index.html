@@ -24,7 +24,16 @@
     </div>
     <div class="visual_container">
       <div class="first_row">
-        <div class="filter_container"></div>
+        <div class="filter_container">
+          <div class="rangeFilter">
+            <span class="range_track" id="range_track"></span>
+            <input type="range" class="min" min="1998" max="2023" value="1998" step="1">
+            <input type="range" class="max" min="1998" max="2023" value="2023" step="1">
+
+            <div class="minvalue"></div>
+            <div class="maxvalue"></div>
+          </div>
+        </div>
         <div class="chart_container">
           <div class="LineChart" id="LineChart"></div>
           <div class="Strip">
