@@ -543,6 +543,20 @@ function createJitterPlot(data) {
 
   const color = d3.scaleOrdinal(d3.schemePaired);
 
+  const aggregatedData = Array.from(
+    d3.rollup(
+      data,
+      (v) => d3.sum(v, (d) => d.Players), // Sum the player base for each game
+      (d) => d.Game, // Group by game
+      (d) => d.Genre // Map genre as well
+    ),
+    ([game, genreMap]) => ({
+      Game: game,
+      Genre: Array.from(genreMap.keys())[0], // Extract genre (assuming a game belongs to one genre)
+      TotalPlayers: Array.from(genreMap.values())[0], // Sum of players across all years
+    })
+  );
+
   const genres = [...new Set(data.map((d) => d.Genre))];
   const genreName = genres.map((genre) => acronyms[genre]);
   const offset = margin * 0.5;
@@ -553,11 +567,11 @@ function createJitterPlot(data) {
 
   const playerScale = d3
     .scaleLinear()
-    .domain([0, d3.max(data, (d) => d.Players)])
+    .domain([0, d3.max(aggregatedData, (d) => d.TotalPlayers)])
     .range([svgHeight - margin, margin * 0.15]);
 
   const horizontalJitter = 40;
-  const verticalJitter = 0;
+  const verticalJitter = 20;
 
   const svg = container
     .append("svg")
@@ -578,7 +592,7 @@ function createJitterPlot(data) {
 
   svg
     .selectAll("circle")
-    .data(data)
+    .data(aggregatedData)
     .enter()
     .append("circle")
     .attr(
@@ -588,7 +602,8 @@ function createJitterPlot(data) {
     )
     .attr(
       "cy",
-      (d) => playerScale(d.Players) + (Math.random() - 0.5) * verticalJitter
+      (d) =>
+        playerScale(d.TotalPlayers) + (Math.random() - 0.5) * verticalJitter
     )
     .attr("r", 5)
     .style("fill", (d) => color(d.Genre))
@@ -604,7 +619,9 @@ function createJitterPlot(data) {
         .style("stroke-width", 2);
       tooltip.transition().duration(200).style("opacity", 1);
       tooltip
-        .html(`Game: ${d.Game} <br>Players: ${d.Players}`)
+        .html(
+          `Game: ${d.Game} <br>Players: ${d.TotalPlayers} <br>Genre: ${d.Genre}`
+        )
         .style("left", `${event.pageX + 10}px`)
         .style("top", `${event.pageY - 20}px`);
     })
@@ -622,7 +639,7 @@ function createJitterPlot(data) {
   svg
     .append("g")
     .attr("class", "xAxis")
-    .attr("transform", `translate(0,${svgHeight - margin})`)
+    .attr("transform", `translate(0,${svgHeight - margin + 10})`)
     .call(d3.axisBottom(genreScale));
 
   svg
