@@ -17,6 +17,20 @@ var colorScheme = {
   "Puzzle Game": "#fcfe9e",
   "Battle Royale": "#b05e26",
 };
+var acronyms = {
+  Strategy: "Strategy",
+  "First-Person Shooter": "FPS",
+  Sports: "Sports",
+  "Fighting Game": "FTG",
+  Racing: "Racing",
+  "Multiplayer Online Battle Arena": "MOBA",
+  "Role-Playing Game": "RPG",
+  "Third-Person Shooter": "TPS",
+  "Music / Rhythm Game": "Music",
+  "Collectible Card Game": "TCG",
+  "Puzzle Game": "Puzzle",
+  "Battle Royale": "BR",
+};
 
 var minRange, maxRange;
 var isAdjusted = false;
@@ -92,6 +106,7 @@ function init() {
     globalData = data;
     yearFilter();
     createLineChart(globalData);
+    createJitterPlot(globalData);
   });
 }
 
@@ -351,22 +366,24 @@ function createLineChart(data) {
       .attr("stroke-width", 3)
       .style("opacity", 1) // Set initial opacity to full
       .style("cursor", "pointer") // Change cursor to pointer
-      .on("mouseover", function () {
-        d3.select(this).transition().duration(200).attr("stroke-width", 5);
-
+      .on("mouseover", function (event, d) {
+        d3.select(this)
+          .transition()
+          .duration(200)
+          .attr("r", 8)
+          .attr("stroke-width", 5);
         tooltip.transition().duration(200).style("opacity", 1);
         tooltip
           .html(`Genre: ${genreData.genre}`)
-          .style("left", `${d3.event.pageX + 10}px`)
-          .style("top", `${d3.event.pageY - 20}px`);
-      })
-      .on("mousemove", function () {
-        tooltip
-          .style("left", `${d3.event.pageX + 10}px`)
-          .style("top", `${d3.event.pageY - 20}px`);
+          .style("left", `${event.pageX + 10}px`)
+          .style("top", `${event.pageY - 20}px`);
       })
       .on("mouseleave", function () {
-        d3.select(this).transition().duration(200).attr("stroke-width", 3);
+        d3.select(this)
+          .transition()
+          .duration(200)
+          .attr("r", 5)
+          .attr("stroke-width", 3);
         tooltip.transition().duration(200).style("opacity", 0);
       })
       .on("click", function () {
@@ -425,13 +442,8 @@ function createLineChart(data) {
         tooltip.transition().duration(200).style("opacity", 1);
         tooltip
           .html(`Year: ${d.Year} <br>Earnings: $${formattedEarnings}`)
-          .style("left", `${d3.event.pageX + 10}px`)
-          .style("top", `${d3.event.pageY - 20}px`);
-      })
-      .on("mousemove", function () {
-        tooltip
-          .style("left", `${d3.event.pageX + 10}px`)
-          .style("top", `${d3.event.pageY - 20}px`);
+          .style("left", `${event.pageX + 10}px`)
+          .style("top", `${event.pageY - 20}px`);
       })
       .on("mouseleave", function () {
         d3.select(this)
@@ -439,7 +451,6 @@ function createLineChart(data) {
           .duration(200)
           .attr("r", 5)
           .style("stroke", "none");
-
         tooltip.transition().duration(200).style("opacity", 0);
       })
       .on("click", function () {
@@ -523,6 +534,119 @@ function createLineChart(data) {
   }
 }
 
+function createJitterPlot(data) {
+  const container = d3.select(".JitterPlot");
+
+  const svgWidth = container.node().getBoundingClientRect().width;
+  const svgHeight = container.node().getBoundingClientRect().height;
+  const margin = 70;
+
+  const color = d3.scaleOrdinal(d3.schemePaired);
+
+  const genres = [...new Set(data.map((d) => d.Genre))];
+  const genreName = genres.map((genre) => acronyms[genre]);
+  const offset = margin * 0.5;
+  const genreScale = d3
+    .scalePoint()
+    .domain(genreName)
+    .range([margin + offset, svgWidth - margin * 0.5]);
+
+  const playerScale = d3
+    .scaleLinear()
+    .domain([0, d3.max(data, (d) => d.Players)])
+    .range([svgHeight - margin, margin * 0.15]);
+
+  const horizontalJitter = 40;
+  const verticalJitter = 0;
+
+  const svg = container
+    .append("svg")
+    .attr("width", svgWidth)
+    .attr("height", svgHeight);
+
+  const tooltip = d3
+    .select(".JitterPlot")
+    .append("div")
+    .attr("class", "tooltip")
+    .style("position", "absolute")
+    .style("padding", "8px")
+    .style("background-color", "white")
+    .style("border", "1px solid #ccc")
+    .style("border-radius", "4px")
+    .style("pointer-events", "none")
+    .style("opacity", 0);
+
+  svg
+    .selectAll("circle")
+    .data(data)
+    .enter()
+    .append("circle")
+    .attr(
+      "cx",
+      (d) =>
+        genreScale(acronyms[d.Genre]) + (Math.random() - 0.5) * horizontalJitter
+    )
+    .attr(
+      "cy",
+      (d) => playerScale(d.Players) + (Math.random() - 0.5) * verticalJitter
+    )
+    .attr("r", 5)
+    .style("fill", (d) => color(d.Genre))
+    .style("cursor", "pointer") // Change cursor to pointer
+    .style("stroke", "#555555")
+    .style("stroke-width", 1)
+    .on("mouseover", function (event, d) {
+      d3.select(this)
+        .transition()
+        .duration(200)
+        .attr("r", 8)
+        .style("stroke", "black")
+        .style("stroke-width", 2);
+      tooltip.transition().duration(200).style("opacity", 1);
+      tooltip
+        .html(`Game: ${d.Game} <br>Players: ${d.Players}`)
+        .style("left", `${event.pageX + 10}px`)
+        .style("top", `${event.pageY - 20}px`);
+    })
+    .on("mouseleave", function () {
+      d3.select(this)
+        .transition()
+        .duration(200)
+        .attr("r", 5)
+        .style("stroke", "#555555")
+        .style("stroke-width", 1);
+      tooltip.transition().duration(200).style("opacity", 0);
+    });
+
+  // Axes
+  svg
+    .append("g")
+    .attr("class", "xAxis")
+    .attr("transform", `translate(0,${svgHeight - margin})`)
+    .call(d3.axisBottom(genreScale));
+
+  svg
+    .append("g")
+    .attr("class", "yAxis")
+    .attr("transform", `translate(${margin},0)`)
+    .call(d3.axisLeft(playerScale).tickFormat(d3.format(".2s")));
+
+  svg
+    .append("text")
+    .attr("x", svgWidth / 2)
+    .attr("y", svgHeight - margin / 2)
+    .attr("text-anchor", "middle")
+    .text("Genres");
+
+  svg
+    .append("text")
+    .attr("x", -svgHeight / 2 + margin / 2)
+    .attr("y", margin / 3)
+    .attr("text-anchor", "middle")
+    .attr("transform", "rotate(-90)")
+    .text("Player Base");
+}
+
 function updateLineChart(data) {
   const container = d3.select(".LineChart");
   console.log("update data");
@@ -586,22 +710,24 @@ function updateLineChart(data) {
       .attr("stroke-width", 3)
       .style("opacity", 1) // Set initial opacity to full
       .style("cursor", "pointer") // Change cursor to pointer
-      .on("mouseover", function () {
-        d3.select(this).transition().duration(200).attr("stroke-width", 5);
-
+      .on("mouseover", function (event, d) {
+        d3.select(this)
+          .transition()
+          .duration(200)
+          .attr("r", 8)
+          .attr("stroke-width", 5);
         tooltip.transition().duration(200).style("opacity", 1);
         tooltip
           .html(`Genre: ${genreData.genre}`)
-          .style("left", `${d3.event.pageX + 10}px`)
-          .style("top", `${d3.event.pageY - 20}px`);
-      })
-      .on("mousemove", function () {
-        tooltip
-          .style("left", `${d3.event.pageX + 10}px`)
-          .style("top", `${d3.event.pageY - 20}px`);
+          .style("left", `${event.pageX + 10}px`)
+          .style("top", `${event.pageY - 20}px`);
       })
       .on("mouseleave", function () {
-        d3.select(this).transition().duration(200).attr("stroke-width", 3);
+        d3.select(this)
+          .transition()
+          .duration(200)
+          .attr("r", 5)
+          .attr("stroke-width", 3);
         tooltip.transition().duration(200).style("opacity", 0);
       })
       .on("click", function () {
@@ -660,13 +786,8 @@ function updateLineChart(data) {
         tooltip.transition().duration(200).style("opacity", 1);
         tooltip
           .html(`Year: ${d.Year} <br>Earnings: $${formattedEarnings}`)
-          .style("left", `${d3.event.pageX + 10}px`)
-          .style("top", `${d3.event.pageY - 20}px`);
-      })
-      .on("mousemove", function () {
-        tooltip
-          .style("left", `${d3.event.pageX + 10}px`)
-          .style("top", `${d3.event.pageY - 20}px`);
+          .style("left", `${event.pageX + 10}px`)
+          .style("top", `${event.pageY - 20}px`);
       })
       .on("mouseleave", function () {
         d3.select(this)
@@ -674,7 +795,6 @@ function updateLineChart(data) {
           .duration(200)
           .attr("r", 5)
           .style("stroke", "none");
-
         tooltip.transition().duration(200).style("opacity", 0);
       })
       .on("click", function () {
