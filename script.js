@@ -377,6 +377,13 @@ function createLineChart(data) {
           .html(`Genre: ${genreData.genre}`)
           .style("left", `${event.pageX + 10}px`)
           .style("top", `${event.pageY - 20}px`);
+        d3.selectAll(".jitter-dot")
+          .filter((dot) => dot.Genre === genreData.genre)
+          .transition()
+          .duration(200)
+          .attr("r", 6.5)
+          .style("stroke", "black")
+          .style("stroke-width", 1.5);
       })
       .on("mouseleave", function () {
         d3.select(this)
@@ -385,6 +392,13 @@ function createLineChart(data) {
           .attr("r", 5)
           .attr("stroke-width", 3);
         tooltip.transition().duration(200).style("opacity", 0);
+        d3.selectAll(".jitter-dot")
+          .filter((dot) => dot.Genre === genreData.genre)
+          .transition()
+          .duration(200)
+          .attr("r", 5)
+          .style("stroke", "#777")
+          .style("stroke-width", 1);
       })
       .on("click", function () {
         const isSelected = selectedLines.includes(genreData.genre);
@@ -441,9 +455,18 @@ function createLineChart(data) {
         }).format(d.Earnings);
         tooltip.transition().duration(200).style("opacity", 1);
         tooltip
-          .html(`Year: ${d.Year} <br>Earnings: $${formattedEarnings}`)
+          .html(
+            `Genre: ${genreData.genre} <br> Year: ${d.Year} <br>Earnings: $${formattedEarnings}`
+          )
           .style("left", `${event.pageX + 10}px`)
           .style("top", `${event.pageY - 20}px`);
+        d3.selectAll(".jitter-dot")
+          .filter((dot) => dot.Genre === genreData.genre)
+          .transition()
+          .duration(200)
+          .attr("r", 6.5)
+          .style("stroke", "black")
+          .style("stroke-width", 1.5);
       })
       .on("mouseleave", function () {
         d3.select(this)
@@ -452,6 +475,13 @@ function createLineChart(data) {
           .attr("r", 5)
           .style("stroke", "none");
         tooltip.transition().duration(200).style("opacity", 0);
+        d3.selectAll(".jitter-dot")
+          .filter((dot) => dot.Genre === genreData.genre)
+          .transition()
+          .duration(200)
+          .attr("r", 5)
+          .style("stroke", "#777")
+          .style("stroke-width", 1);
       })
       .on("click", function () {
         const isSelected = selectedLines.includes(genreData.genre);
@@ -571,7 +601,19 @@ function createJitterPlot(data) {
     .range([svgHeight - margin, margin * 0.15]);
 
   const horizontalJitter = 40;
-  const verticalJitter = 20;
+  const verticalJitter = 0;
+
+  d3.select(".JitterPlot")
+    .append("div")
+    .attr("class", "title_jitter")
+    .style("display", "flex")
+    .style("width", "100%")
+    .style("justify-content", "space-between");
+
+  d3.select(".title_jitter")
+    .append("h3")
+    .style("margin-left", `42px`)
+    .text("Player distribution per Game by Genre");
 
   const svg = container
     .append("svg")
@@ -595,6 +637,7 @@ function createJitterPlot(data) {
     .data(aggregatedData)
     .enter()
     .append("circle")
+    .attr("class", "jitter-dot")
     .attr(
       "cx",
       (d) =>
@@ -608,7 +651,7 @@ function createJitterPlot(data) {
     .attr("r", 5)
     .style("fill", (d) => color(d.Genre))
     .style("cursor", "pointer") // Change cursor to pointer
-    .style("stroke", "#555555")
+    .style("stroke", "#777")
     .style("stroke-width", 1)
     .on("mouseover", function (event, d) {
       d3.select(this)
@@ -630,7 +673,7 @@ function createJitterPlot(data) {
         .transition()
         .duration(200)
         .attr("r", 5)
-        .style("stroke", "#555555")
+        .style("stroke", "#777")
         .style("stroke-width", 1);
       tooltip.transition().duration(200).style("opacity", 0);
     });
@@ -639,7 +682,7 @@ function createJitterPlot(data) {
   svg
     .append("g")
     .attr("class", "xAxis")
-    .attr("transform", `translate(0,${svgHeight - margin + 10})`)
+    .attr("transform", `translate(0,${svgHeight - margin})`)
     .call(d3.axisBottom(genreScale));
 
   svg
