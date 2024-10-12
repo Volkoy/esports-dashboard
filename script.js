@@ -1,28 +1,29 @@
 var globalData;
-var genres;
-var selectedGenres;
-var years;
-var selectedLines = [];
-var colorScheme = {
-  Strategy: "#a7cde3",
-  "First-Person Shooter": "#2b77b3",
-  Sports: "#afdd8f",
-  "Fighting Game": "#299d39",
-  Racing: "#fb9f97",
-  "Multiplayer Online Battle Arena": "#e23703",
-  "Role-Playing Game": "#fbc171",
-  "Third-Person Shooter": "#fe8600",
-  "Music / Rhythm Game": "#cbb3d5",
-  "Collectible Card Game": "#6d4198",
-  "Puzzle Game": "#fcfe9e",
-  "Battle Royale": "#b05e26",
-};
+var originalData;
+
+var isSelected;
+
+var genres = [
+  "Strategy",
+  "First-Person Shooter",
+  "Sports",
+  "Fighting Game",
+  "Racing",
+  "Multiplayer Online Battle Arena",
+  "Role-Playing Game",
+  "Third-Person Shooter",
+  "Music / Rhythm Game",
+  "Collectible Card Game",
+  "Puzzle Game",
+  "Battle Royale",
+];
+
 var acronyms = {
-  Strategy: "Strategy",
+  "Strategy": "Strategy",
   "First-Person Shooter": "FPS",
-  Sports: "Sports",
+  "Sports": "Sports",
   "Fighting Game": "FTG",
-  Racing: "Racing",
+  "Racing": "Racing",
   "Multiplayer Online Battle Arena": "MOBA",
   "Role-Playing Game": "RPG",
   "Third-Person Shooter": "TPS",
@@ -32,79 +33,42 @@ var acronyms = {
   "Battle Royale": "BR",
 };
 
+function getGenreByAcronym(acronym) {
+  for (const [genre, acr] of Object.entries(acronyms)) {
+    if (acr === acronym) {
+      return genre;  // Return the genre name if it matches
+    }
+  }
+  return null;  // Return null if the acronym does not exist
+}
+
+var selectedGenres = [...genres];
+
+var years = Array.from({ length: 2024 - 1998 }, (_, i) => 1998 + i);
+
+var colorScheme = {
+  "Strategy": "#a7cde3",
+  "First-Person Shooter": "#2b77b3",
+  "Sports": "#afdd8f",
+  "Fighting Game": "#299d39",
+  "Racing": "#fb9f97",
+  "Multiplayer Online Battle Arena": "#EC0000",
+  "Role-Playing Game": "#fbc171",
+  "Third-Person Shooter": "#fe8600",
+  "Music / Rhythm Game": "#cbb3d5",
+  "Collectible Card Game": "#6d4198",
+  "Puzzle Game": "#ECDC00",
+  "Battle Royale": "#b05e26",
+};
 var minRange, maxRange;
 var isAdjusted = false;
-
-function yearFilter() {
-  let minRangeValueGap = 2;
-
-  const range = document.getElementById("range_track");
-  const minval = document.querySelector(".minvalue");
-  const maxval = document.querySelector(".maxvalue");
-  const rangeInput = document.querySelectorAll(".min, .max");
-
-  let minYear = 1998; // Set the starting year
-  let maxYear = 2023; // Set the ending year
-
-  const minRangeFill = () => {
-    // Calculate the left position based on the current year range
-    range.style.left =
-      ((rangeInput[0].value - minYear) / (maxYear - minYear)) * 100 + "%";
-  };
-  const maxRangeFill = () => {
-    // Calculate the right position based on the current year range
-    range.style.right =
-      100 - ((rangeInput[1].value - minYear) / (maxYear - minYear)) * 100 + "%";
-  };
-
-  const setMinValueOutput = () => {
-    minRange = parseInt(rangeInput[0].value);
-    minval.innerHTML = rangeInput[0].value;
-  };
-  const setMaxValueOutput = () => {
-    maxRange = parseInt(rangeInput[1].value);
-    maxval.innerHTML = rangeInput[1].value;
-  };
-
-  setMinValueOutput();
-  setMaxValueOutput();
-  minRangeFill();
-  maxRangeFill();
-
-  rangeInput.forEach((input) => {
-    input.addEventListener("input", (e) => {
-      let filtered = globalData;
-      setMinValueOutput();
-      setMaxValueOutput();
-      minRangeFill();
-      maxRangeFill();
-      filtered = globalData.filter(
-        (d) => d.Year >= minRange && d.Year <= maxRange
-      );
-      years = [...new Set(filtered.map((d) => d.Year))];
-      updateLineChart(switchEarningData(filtered));
-      if (maxRange - minRange < minRangeValueGap) {
-        if (e.target.className === "min") {
-          rangeInput[0].value = maxRange - minRangeValueGap;
-          setMinValueOutput();
-          minRangeFill();
-          e.target.style.zIndex = "2";
-        } else {
-          rangeInput[1].value = minRange + minRangeValueGap;
-          e.target.style.zIndex = "2";
-          setMaxValueOutput();
-          maxRangeFill();
-        }
-      }
-    });
-  });
-}
 
 // Initialization of the dashboard
 function init() {
   d3.json("esports.json").then(function (data) {
     globalData = data;
-    yearFilter();
+    originalData = data;
+    createGenreFilter(globalData);
     createLineChart(globalData);
     createJitterPlot(globalData);
   });
@@ -113,7 +77,6 @@ function init() {
 function switchEarningData(data) {
   let aggregatedData;
   if (isAdjusted) {
-    selectedLines = [];
     aggregatedData = d3.rollup(
       data,
       (v) => d3.sum(v, (d) => d.AdjustedEarnings),
@@ -121,7 +84,6 @@ function switchEarningData(data) {
       (d) => d.Year
     );
   } else {
-    selectedLines = [];
     aggregatedData = d3.rollup(
       data,
       (v) => d3.sum(v, (d) => d.Earnings),
@@ -129,17 +91,354 @@ function switchEarningData(data) {
       (d) => d.Year
     );
   }
-  const formattedData = Array.from(aggregatedData, ([genre, yearMap]) => ({
-    genre: genre,
-    values: Array.from(yearMap, ([year, earnings]) => ({
-      Year: year,
-      Earnings: earnings,
-    })),
-  }));
-  return formattedData;
+  return aggregatedData;
 }
 
-// Create visual idioms
+
+function createGenreFilter(data) {
+  // Checkbox container
+  const checkboxContainer = d3
+    .select(".filter_container")
+    .append("div")
+    .attr("class", "checkbox-container")
+    .style("display", "flex")
+    .style("gap", ".5em")
+    .style("flex-direction", "column")
+    .style("height", "100%");
+
+  // Add "All" checkbox
+  checkboxContainer
+    .append("div")
+    .attr("class", "checkbox-item")
+    .attr("id", "all")
+    .append("input")
+    .attr("type", "checkbox")
+    .attr("id", "checkbox-all")
+    .attr("checked", true)
+    .on("change", function () {
+      const checked = d3.select(this).property("checked");
+      toggleAllLinesVisibility(checked);
+      if (checked) {
+        globalData = originalData;
+        selectedGenres = [...genres];
+        globalData = data.filter((g) =>
+          selectedGenres.includes(g.Genre)
+        );
+        updateCharts(globalData);
+      } else {
+        globalData = originalData;
+        selectedGenres = [];
+        globalData = data.filter((g) =>
+          selectedGenres.includes(g.Genre)
+        );
+        updateCharts(globalData);
+      }
+    });
+
+  const checkAll = d3.select("#all");
+  checkAll.append("label").attr("for", "checkbox-all").text("All");
+
+  // Checkboxes for each genre
+  checkboxContainer
+    .selectAll(".checkbox")
+    .data(genres)
+    .enter()
+    .append("div")
+    .attr("class", "checkbox-item")
+    .each(function (d, i) {
+      const box = d3.select(this);
+      box
+        .append("input")
+        .attr("type", "checkbox")
+        .attr("id", `checkbox-${i}`)
+        .attr("checked", true)
+        .on("change", function () {
+          const checked = d3.select(this).property("checked");
+          toggleLineVisibility(d, checked);
+          if (checked) {
+            globalData = originalData;
+            selectedGenres.push(d);
+            globalData = data.filter((g) =>
+              selectedGenres.includes(g.Genre)
+            );
+            updateCharts(globalData);
+          } else {
+            globalData = originalData;
+            selectedGenres = selectedGenres.filter(
+              (genre) => genre !== d
+            );
+            globalData = data.filter((g) =>
+              selectedGenres.includes(g.Genre)
+            );
+            updateCharts(globalData);
+          }
+        });
+
+      // Add color circle before checkbox
+      box
+        .append("span")
+        .style("display", "inline-block")
+        .style("width", "12px")
+        .style("height", "12px")
+        .style("background-color", colorScheme[d])
+        .style("border-radius", "50%")
+        .style("margin-right", "6px");
+
+      // Add label
+      box
+        .append("label")
+        .attr("for", `checkbox-${i}`)
+        .text(d)
+        .style("font-size", "1em");
+    });
+
+    function toggleLineVisibility(genre, visible) {
+      // Check if "All" checkbox should be checked/unchecked
+      checkAllBoxState();
+    }
+  
+    // Function to toggle all lines
+    function toggleAllLinesVisibility(visible) {
+      genres.forEach((_, index) => {
+        d3.select(`#checkbox-${index}`).property("checked", visible);
+        toggleLineVisibility(index, visible);
+      });
+    }
+  
+    // Function to check/uncheck "All" checkbox based on individual selections
+    function checkAllBoxState() {
+      const allChecked = genres.every((_, index) =>
+        d3.select(`#checkbox-${index}`).property("checked")
+      );
+      d3.select("#checkbox-all").property("checked", allChecked);
+    }
+}
+
+function createClassNames(name) {
+  return name
+    .toLowerCase()                   // Convert to lowercase
+    .replace(/\s+/g, '-')            // Replace spaces with hyphens
+    .replace(/[^a-z0-9-]/g, '')      // Remove any non-alphanumeric characters (excluding hyphens)
+};
+
+function updateCharts(data) {
+  updateLineChart(data);
+  updateJitterPlot(data);
+}
+
+function updateLineChart(data) {
+  const container = d3.select(".LineChart");
+
+  const svgWidth = container.node().getBoundingClientRect().width;
+  const svgHeight = container.node().getBoundingClientRect().height;
+  const margin = 70;
+
+  const svg = d3.select("#line-chart");
+
+  // Prepare formatted data
+  const formattedData = Array.from(
+    switchEarningData(data, isAdjusted),
+    ([genre, yearMap]) => ({
+      genre: genre,
+      values: Array.from(yearMap, ([year, earnings]) => ({
+        Year: year,
+        Earnings: earnings,
+      })),
+    })
+  );
+
+  years = [...new Set(formattedData.flatMap(d => d.values.map(v => Number(v.Year))))].sort((a, b) => a - b);
+
+  const xScale = d3
+    .scalePoint()
+    .domain(years)
+    .range([margin, svgWidth - margin * 0.5]);
+
+  const yScale = d3
+    .scaleLinear()
+    .domain([
+      0,
+      d3.max(formattedData, (genreData) =>
+        d3.max(genreData.values, (d) => d.Earnings)
+      ),
+    ])
+    .range([svgHeight - margin, margin * 0.15]);
+
+  // Update lines
+  const line = d3
+    .line()
+    .x((d) => xScale(d.Year))
+    .y((d) => yScale(d.Earnings));
+
+  const lines = svg.selectAll(".line")
+    .data(formattedData, d => d.genre);
+
+  // Enter selection: Create new lines for new genres
+  lines.enter()
+    .append("path")
+    .attr("class", d => `line ${acronyms[d.genre]}`)
+    .attr("d", d => line(d.values))
+    .attr("fill", "none")
+    .attr("stroke", d => `${colorScheme[d.genre]}`)
+    .attr("stroke-width", 3)
+    .style("opacity", 1)
+    .style("cursor", "pointer")
+    .on("mouseover", function(event, d) {
+      const tooltip = d3.select(".tooltip");
+      tooltip.transition().duration(200).style("opacity", 1);
+      tooltip.html(`Genre: ${d.genre}`)
+        .style("left", `${event.pageX}px`)
+        .style("top", `${event.pageY}px`);
+
+      const color = d3.select(this).style("stroke");
+      const genre = d3.select(this).attr("class").split(' ')[1];
+
+      if(!isSelected) {
+        d3.selectAll(".line").style("stroke", "grey").style("opacity", "0.2")
+        d3.selectAll(`.line.${genre}`).style("stroke", color).style("opacity", "1")
+        d3.selectAll(".circle").style("fill", "grey").style("opacity", "0.2")
+        d3.selectAll(`.circle.${genre}`).style("fill", color).style("opacity", "1")
+      }
+      d3.selectAll(`.line.${genre}`).transition().duration(200).attr("stroke-width", "5")
+    })
+    .on("mouseleave", function(event, d) {
+      const tooltip = d3.select(".tooltip");
+      const color = d3.select(this).style("stroke");
+      const classes = d3.select(this).attr("class").split(' ');
+      const genre = classes[1];
+      if(!isSelected){
+        d3.selectAll(".line").each(function(d) {
+          const classes = d3.select(this).attr("class").split(' ');;
+          const genre = classes[1];
+          d3.select(this).transition().duration(200).attr("stroke-width", "3")
+              .style("stroke", colorScheme[getGenreByAcronym(genre)]) // Restore based on genre
+              .style("opacity", "1");
+          });
+  
+        d3.selectAll(".circle").each(function(d) {
+            const classes = d3.select(this).attr("class").split(' ');
+            const genre = classes[1];
+            d3.select(this)
+                .style("fill", colorScheme[getGenreByAcronym(genre)]) // Restore based on genre
+                .style("opacity", "1");
+        });
+      }
+      d3.selectAll(`.line.${genre}`).transition().duration(200).attr("stroke-width", "3")
+      tooltip.transition().duration(200).style("opacity", 0);
+    });
+
+  // Update selection: Update existing lines
+  lines.transition()
+    .duration(500)
+    .attr("d", d => line(d.values));
+
+  // Exit selection: Remove lines that no longer have data
+  lines.exit()
+    .transition()
+    .duration(500)
+    .style("opacity", 0)
+    .remove();
+
+  // Bind data to circles
+  const circles = svg.selectAll(".circle")
+    .data(formattedData.flatMap(genreData => genreData.values.map(d => ({ ...d, genre: genreData.genre }))), d => d.Year + d.genre);
+
+  // Enter selection: Create new circles for new data points
+  circles.enter()
+    .append("circle")
+    .attr("class", d => `circle ${acronyms[d.genre]}`)
+    .attr("r", 5)
+    .style("cursor", "pointer")
+    .attr("cx", d => xScale(d.Year))
+    .attr("cy", d => yScale(d.Earnings))
+    .style("fill", d => `${colorScheme[d.genre]}`)
+    .on("mouseover", function(event, d) {
+      const formattedEarnings = new Intl.NumberFormat("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(d.Earnings);
+      const tooltip = d3.select(".tooltip");
+
+      tooltip.transition().duration(200).style("opacity", 1);
+      tooltip.html(`Genre: ${d.genre} <br> Year: ${d.Year} <br>Earnings: $${formattedEarnings}`)
+        .style("left", `${event.pageX}px`)
+        .style("top", `${event.pageY}px`);
+
+      const color = d3.select(this).style("fill");
+      const classes = d3.select(this).attr("class").split(' ');
+      const genre = classes[1];
+      if(!isSelected) {
+        d3.selectAll(".line").style("stroke", "grey").style("opacity", "0.2")
+        d3.selectAll(`.line.${genre}`).style("stroke", color).style("opacity", "1")
+        d3.selectAll(".circle").style("fill", "grey").style("opacity", "0.2")
+        d3.selectAll(`.circle.${genre}`).style("fill", color).style("opacity", "1")
+      }
+      d3.select(this).transition().duration(200).attr("r", "8")
+    })
+    .on("mouseleave", function(event, d) {
+      const tooltip = d3.select(".tooltip");
+      tooltip.transition().duration(200).style("opacity", 0);
+      if(!isSelected){
+        d3.selectAll(".line").each(function(d) {
+          const classes = d3.select(this).attr("class").split(' ');;
+          const genre = classes[1];
+          d3.select(this)
+          .style("stroke", colorScheme[getGenreByAcronym(genre)]) // Restore based on genre
+          .style("opacity", "1");
+        });
+        
+        d3.selectAll(".circle").each(function(d) {
+          const classes = d3.select(this).attr("class").split(' ');
+          const genre = classes[1];
+          d3.select(this).transition().duration(200).attr("r", "5")
+          .style("fill", colorScheme[getGenreByAcronym(genre)]) // Restore based on genre
+          .style("opacity", "1");
+        });
+      }
+      d3.select(this).transition().duration(200).attr("r", "5")
+    });
+
+  // Update selection: Update existing circles
+  circles.transition()
+    .duration(500)
+    .attr("cx", d => xScale(d.Year))
+    .attr("cy", d => yScale(d.Earnings));
+
+  // Exit selection: Remove circles that no longer have data
+  circles.exit()
+    .transition()
+    .duration(500)
+    .style("opacity", 0)
+    .remove();
+
+  // Update the axes
+  const xAxis = svg.select(".xAxis");
+  const yAxis = svg.select(".yAxis");
+
+  // If axes do not exist, create them
+  if (xAxis.empty()) {
+    svg.append("g")
+      .attr("class", "xAxis")
+      .attr("transform", `translate(0,${svgHeight - margin})`)
+      .call(d3.axisBottom(xScale));
+  } else {
+    xAxis.transition()
+      .duration(500)
+      .call(d3.axisBottom(xScale));
+  }
+
+  if (yAxis.empty()) {
+    svg.append("g")
+      .attr("class", "yAxis")
+      .attr("transform", `translate(${margin},0)`)
+      .call(d3.axisLeft(yScale).tickFormat(d3.format(".2s")));
+  } else {
+    yAxis.transition()
+      .duration(500)
+      .call(d3.axisLeft(yScale).tickFormat(d3.format(".2s")));
+  }
+}
+
 function createLineChart(data) {
   const container = d3.select(".LineChart");
 
@@ -149,7 +448,6 @@ function createLineChart(data) {
 
   const color = d3.scaleOrdinal(d3.schemePaired);
 
-  // Tooltip
   const tooltip = d3
     .select(".LineChart")
     .append("div")
@@ -162,11 +460,16 @@ function createLineChart(data) {
     .style("pointer-events", "none")
     .style("opacity", 0);
 
-  const formattedData = switchEarningData(data, false);
-  years = [...new Set(data.map((d) => d.Year))];
-  genres = [...new Set(data.map((d) => d.Genre))];
-  selectedGenres = [];
-  selectedGenres = genres;
+  const formattedData = Array.from(
+    switchEarningData(data, false),
+    ([genre, yearMap]) => ({
+      genre: genre,
+      values: Array.from(yearMap, ([year, earnings]) => ({
+        Year: year,
+        Earnings: earnings,
+      })),
+    })
+  );
 
   const xScale = d3
     .scalePoint()
@@ -202,6 +505,7 @@ function createLineChart(data) {
     .style("background-color", "lightgrey")
     .style("border-radius", ".5em")
     .style("padding", ".125em")
+    .style("display", "flex")
     .style("margin-right", "1em");
 
   d3.select(".linechart-buttons")
@@ -212,21 +516,23 @@ function createLineChart(data) {
     .style("border", "none")
     .style("border-radius", ".5em")
     .style("color", "white")
+    .style("font-size", "0.75em")
     .property("disabled", true)
     .on("click", function () {
       isAdjusted = false;
       d3.select(".not-adjusted")
         .style("background-color", "blue")
         .style("color", "white")
+        .style("cursor", "default")
         .property("disabled", true);
       d3.select(".adjusted")
         .style("background-color", "lightgrey")
         .style("color", "black")
+        .style("cursor", "pointer")
         .property("disabled", false);
-      let updatedData = switchEarningData(data);
-      updatedData = updatedData.filter((g) => selectedGenres.includes(g.genre));
-      updateLineChart(updatedData);
+      updateCharts(globalData);
     });
+
   d3.select(".linechart-buttons")
     .append("button")
     .text("Adjusted")
@@ -235,25 +541,27 @@ function createLineChart(data) {
     .style("background-color", "lightgrey")
     .style("border", "none")
     .style("border-radius", ".5em")
+    .style("font-size", "0.75em")
     .property("disabled", false)
     .on("click", function () {
       isAdjusted = true;
       d3.select(".adjusted")
         .style("background-color", "blue")
         .style("color", "white")
+        .style("cursor", "default")
         .property("disabled", true);
       d3.select(".not-adjusted")
         .style("background-color", "lightgrey")
         .style("color", "black")
+        .style("cursor", "pointer")
         .property("disabled", false);
-      let updatedData = switchEarningData(data);
-      updatedData = updatedData.filter((g) => selectedGenres.includes(g.genre));
-      updateLineChart(updatedData);
+      updateCharts(globalData);
     });
 
   const svg = d3
     .select(".LineChart")
     .append("svg")
+    .attr("id", "line-chart")
     .attr("width", svgWidth)
     .attr("height", svgHeight);
 
@@ -262,95 +570,15 @@ function createLineChart(data) {
     .x((d) => xScale(d.Year))
     .y((d) => yScale(d.Earnings));
 
-  // Checkbox container
-  const checkboxContainer = d3
-    .select(".filter_container")
-    .append("div")
-    .attr("class", "checkbox-container")
-    .style("display", "flex")
-    .style("flex-direction", "column")
-    .style("height", "100%");
+    const brush = d3.brushX()
+    .extent([[margin, 0], [svgWidth - margin / 3, svgHeight- margin]])  // Define the extent of the brush
+    .on("brush end", brushed);
 
-  // Add "All" checkbox
-  checkboxContainer
-    .append("div")
-    .attr("class", "checkbox-item")
-    .attr("id", "all")
-    .append("input")
-    .attr("type", "checkbox")
-    .attr("id", "checkbox-all")
-    .attr("checked", true)
-    .on("change", function () {
-      const checked = d3.select(this).property("checked");
-      toggleAllLinesVisibility(checked);
-      if (checked) {
-        selectedGenres = genres;
-        let updatedData = formattedData.filter((g) =>
-          selectedGenres.includes(g.genre)
-        );
-        updateLineChart(updatedData);
-      } else {
-        selectedGenres = [];
-        let updatedData = formattedData.filter((g) =>
-          selectedGenres.includes(g.genre)
-        );
-        updateLineChart(updatedData);
-      }
-    });
-
-  const checkAll = d3.select("#all");
-
-  checkAll.append("label").attr("for", "checkbox-all").text("All");
-
-  // Checkboxes for each genre
-  checkboxContainer
-    .selectAll(".checkbox")
-    .data(formattedData)
-    .enter()
-    .append("div")
-    .attr("class", "checkbox-item")
-    .each(function (d, i) {
-      const div = d3.select(this);
-
-      // Add checkbox
-      div
-        .append("input")
-        .attr("type", "checkbox")
-        .attr("id", `checkbox-${i}`)
-        .attr("checked", true) // Default checked
-        .on("change", function () {
-          const checked = d3.select(this).property("checked");
-          toggleLineVisibility(i, checked);
-          if (checked) {
-            selectedGenres.push(d.genre);
-            let updatedData = formattedData.filter((g) =>
-              selectedGenres.includes(g.genre)
-            );
-            updateLineChart(updatedData);
-          } else {
-            selectedGenres = selectedGenres.filter(
-              (genre) => genre !== d.genre
-            );
-            let updatedData = formattedData.filter((g) =>
-              selectedGenres.includes(g.genre)
-            );
-            updateLineChart(updatedData);
-          }
-        });
-
-      // Add color circle before checkbox
-      div
-        .append("span")
-        .style("display", "inline-block")
-        .style("width", "12px")
-        .style("height", "12px")
-        .style("background-color", color(i))
-        .style("border-radius", "50%")
-        .style("margin-right", "6px");
-
-      // Add label
-      div.append("label").attr("for", `checkbox-${i}`).text(d.genre);
-    });
+  // Append a group for the brush
+  const brushGroup = svg.append("g")
+    .attr("class", "brush")
+    .style("opacity", "0")
+    .call(brush);
 
   // Draw lines and circles for each genre
   formattedData.forEach((genreData, index) => {
@@ -358,162 +586,112 @@ function createLineChart(data) {
     const path = svg
       .append("path")
       .datum(genreData.values)
-      .attr("class", `line line-${index}`)
-      .attr("id", `${genreData.genre}`)
+      .attr("class", `line ${acronyms[genreData.genre]}`)
       .attr("d", line)
       .attr("fill", "none")
       .attr("stroke", genreColor)
       .attr("stroke-width", 3)
-      .style("opacity", 1) // Set initial opacity to full
-      .style("cursor", "pointer") // Change cursor to pointer
+      .style("opacity", 1)
+      .style("cursor", "pointer")
       .on("mouseover", function (event, d) {
-        d3.select(this)
-          .transition()
-          .duration(200)
-          .attr("r", 8)
-          .attr("stroke-width", 5);
         tooltip.transition().duration(200).style("opacity", 1);
         tooltip
           .html(`Genre: ${genreData.genre}`)
-          .style("left", `${event.pageX + 10}px`)
-          .style("top", `${event.pageY - 20}px`);
-        d3.selectAll(".jitter-dot")
-          .filter((dot) => dot.Genre === genreData.genre)
-          .transition()
-          .duration(200)
-          .attr("r", 6.5)
-          .style("stroke", "black")
-          .style("stroke-width", 1.5);
-      })
-      .on("mouseleave", function () {
-        d3.select(this)
-          .transition()
-          .duration(200)
-          .attr("r", 5)
-          .attr("stroke-width", 3);
-        tooltip.transition().duration(200).style("opacity", 0);
-        d3.selectAll(".jitter-dot")
-          .filter((dot) => dot.Genre === genreData.genre)
-          .transition()
-          .duration(200)
-          .attr("r", 5)
-          .style("stroke", "#777")
-          .style("stroke-width", 1);
-      })
-      .on("click", function () {
-        const isSelected = selectedLines.includes(genreData.genre);
-
-        if (isSelected) {
-          // If the line is already selected, remove it from the array
-          selectedLines.splice(selectedLines.indexOf(genreData.genre), 1);
-        } else {
-          // If not, add it to the selected array
-          selectedLines.push(genreData.genre);
+          .style("left", `${event.pageX}px`)
+          .style("top", `${event.pageY}px`);
+        
+        const color = d3.select(this).style("stroke");
+        const classes = d3.select(this).attr("class").split(' ');
+        const genre = classes[1];
+        if(!isSelected) {
+          d3.selectAll(".line").style("stroke", "grey").style("opacity", "0.2")
+          d3.selectAll(`.line.${genre}`).style("stroke", color).style("opacity", "1")
+          d3.selectAll(".circle").style("fill", "grey").style("opacity", "0.2")
+          d3.selectAll(`.circle.${genre}`).style("fill", color).style("opacity", "1")
         }
-
-        // Set opacity for all lines
-        svg.selectAll(".line").each(function () {
-          const lineGenre = d3.select(this).attr("id"); // Get genre from line ID
-          d3.select(this).style(
-            "opacity",
-            selectedLines.includes(lineGenre) ? 1 : 0.2
-          );
-        });
-
-        // Set opacity for all circles
-        svg.selectAll(".circle").each(function () {
-          const circleGenre = d3.select(this).attr("id"); // Assuming circles have IDs matching their genres
-          d3.select(this).style(
-            "opacity",
-            selectedLines.includes(circleGenre) ? 1 : 0.2
-          );
-        });
-      });
+        d3.selectAll(`.line.${genre}`).transition().duration(200).attr("stroke-width", "5")
+      })
+      .on("mouseleave", function (event, d) {
+        const color = d3.select(this).style("stroke");
+        const classes = d3.select(this).attr("class").split(' ');
+        const genre = classes[1];
+        if(!isSelected){
+          d3.selectAll(".line").each(function(d) {
+            const classes = d3.select(this).attr("class").split(' ');;
+            const genre = classes[1];
+            d3.select(this).transition().duration(200).attr("stroke-width", "3")
+                .style("stroke", colorScheme[getGenreByAcronym(genre)]) // Restore based on genre
+                .style("opacity", "1");
+            });
+    
+          d3.selectAll(".circle").each(function(d) {
+              const classes = d3.select(this).attr("class").split(' ');
+              const genre = classes[1];
+              d3.select(this)
+                  .style("fill", colorScheme[getGenreByAcronym(genre)]) // Restore based on genre
+                  .style("opacity", "1");
+            });
+        }
+        d3.selectAll(`.line.${genre}`).transition().duration(200).attr("stroke-width", "3")
+        tooltip.transition().duration(200).style("opacity", 0);
+    });
 
     svg
       .selectAll(`.circle-${index}`)
       .data(genreData.values)
       .enter()
       .append("circle")
-      .attr("class", `circle circle-${index}`)
-      .attr("id", `${genreData.genre}`)
+      .attr("class", `circle ${acronyms[genreData.genre]}`)
       .attr("r", 5)
       .style("cursor", "pointer")
       .attr("cx", (d) => xScale(d.Year))
       .attr("cy", (d) => yScale(d.Earnings))
       .style("fill", color(index))
       .on("mouseover", function (event, d) {
-        d3.select(this)
-          .transition()
-          .duration(200)
-          .attr("r", 8)
-          .style("stroke", "black")
-          .style("stroke-width", 2);
         const formattedEarnings = new Intl.NumberFormat("en-US", {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2,
         }).format(d.Earnings);
         tooltip.transition().duration(200).style("opacity", 1);
         tooltip
-          .html(
-            `Genre: ${genreData.genre} <br> Year: ${d.Year} <br>Earnings: $${formattedEarnings}`
-          )
-          .style("left", `${event.pageX + 10}px`)
-          .style("top", `${event.pageY - 20}px`);
-        d3.selectAll(".jitter-dot")
-          .filter((dot) => dot.Genre === genreData.genre)
-          .transition()
-          .duration(200)
-          .attr("r", 6.5)
-          .style("stroke", "black")
-          .style("stroke-width", 1.5);
-      })
-      .on("mouseleave", function () {
-        d3.select(this)
-          .transition()
-          .duration(200)
-          .attr("r", 5)
-          .style("stroke", "none");
-        tooltip.transition().duration(200).style("opacity", 0);
-        d3.selectAll(".jitter-dot")
-          .filter((dot) => dot.Genre === genreData.genre)
-          .transition()
-          .duration(200)
-          .attr("r", 5)
-          .style("stroke", "#777")
-          .style("stroke-width", 1);
-      })
-      .on("click", function () {
-        const isSelected = selectedLines.includes(genreData.genre);
-
-        if (isSelected) {
-          // If the line is already selected, remove it from the array
-          selectedLines.splice(selectedLines.indexOf(genreData.genre), 1);
-        } else {
-          // If not, add it to the selected array
-          selectedLines.push(genreData.genre);
+        .html(
+          `Genre: ${genreData.genre} <br> Year: ${d.Year} <br>Earnings: $${formattedEarnings}`
+        )
+        const color = d3.select(this).style("fill");
+        const classes = d3.select(this).attr("class").split(' ');
+        const genre = classes[1];
+        if(!isSelected) {
+          d3.selectAll(".line").style("stroke", "grey").style("opacity", "0.2")
+          d3.selectAll(`.line.${genre}`).style("stroke", color).style("opacity", "1")
+          d3.selectAll(".circle").style("fill", "grey").style("opacity", "0.2")
+          d3.selectAll(`.circle.${genre}`).style("fill", color).style("opacity", "1")
         }
+        d3.select(this).transition().duration(200).attr("r", "8")
+      })
+      .on("mouseleave", function (event, d) {
+        if(!isSelected){
+          d3.selectAll(".line").each(function(d) {
+            const classes = d3.select(this).attr("class").split(' ');;
+            const genre = classes[1];
+            d3.select(this)
+            .style("stroke", colorScheme[getGenreByAcronym(genre)]) // Restore based on genre
+            .style("opacity", "1");
+          });
+          
+          d3.selectAll(".circle").each(function(d) {
+            const classes = d3.select(this).attr("class").split(' ');
+            const genre = classes[1];
+            d3.select(this).transition().duration(200).attr("r", "5")
+            .style("fill", colorScheme[getGenreByAcronym(genre)]) // Restore based on genre
+            .style("opacity", "1");
+          });
+        }
+        d3.select(this).transition().duration(200).attr("r", "5")
+        tooltip.transition().duration(200).style("opacity", 0);
+        tooltip.transition().duration(500).style("opacity", 0);
+    });
 
-        // Set opacity for all lines
-        svg.selectAll(".line").each(function () {
-          const lineGenre = d3.select(this).attr("id"); // Get genre from line ID
-          d3.select(this).style(
-            "opacity",
-            selectedLines.includes(lineGenre) ? 1 : 0.2
-          );
-        });
-
-        // Set opacity for all circles
-        svg.selectAll(".circle").each(function () {
-          const circleGenre = d3.select(this).attr("id"); // Assuming circles have IDs matching their genres
-          d3.select(this).style(
-            "opacity",
-            selectedLines.includes(circleGenre) ? 1 : 0.2
-          );
-        });
-      });
   });
-
   // X and Y axes
   svg
     .append("g")
@@ -542,26 +720,43 @@ function createLineChart(data) {
     .attr("transform", "rotate(-90)")
     .text("Earnings");
 
-  function toggleLineVisibility(index, visible) {
-    // Check if "All" checkbox should be checked/unchecked
-    checkAllBoxState();
+  // Create left and right overlay rectangles for greying out
+  const greyLeft = svg.append("rect")
+  .attr("class", "grey-out left")
+  .attr("x", 0)
+  .attr("y", 0)
+  .attr("transform", `translate(${margin},0)`)
+  .attr("height", svgHeight- margin)
+  .attr("width", 0) // Start with no width
+  .attr("fill", "grey")
+  .attr("opacity", 0.7);
+
+  const greyRight = svg.append("rect")
+  .attr("class", "grey-out right")
+  .attr("x", 0)
+  .attr("y", 0)
+  .attr("height", svgHeight - margin)
+  .attr("width", 0) // Start with no width
+  .attr("fill", "grey")
+  .attr("opacity", 0.7);
+
+    // The brushed function to handle brush event
+  function brushed(event) {
+    if (!event.selection) return;  // Exit if no selection is made
+
+    const [x0, x1] = event.selection;  // Get the selection range
+    // Update the grey areas based on brush selection
+    greyLeft.attr("width", x0 - margin);  // Grey the area from 0 to x0
+    greyRight.attr("x", x1)      // Set the position of the right grey area
+            .attr("width", svgWidth - margin / 3 - x1);  // Grey the area from x1 to the width of the chart
   }
 
-  // Function to toggle all lines
-  function toggleAllLinesVisibility(visible) {
-    formattedData.forEach((_, index) => {
-      d3.select(`#checkbox-${index}`).property("checked", visible);
-      toggleLineVisibility(index, visible);
-    });
-  }
-
-  // Function to check/uncheck "All" checkbox based on individual selections
-  function checkAllBoxState() {
-    const allChecked = formattedData.every((_, index) =>
-      d3.select(`#checkbox-${index}`).property("checked")
-    );
-    d3.select("#checkbox-all").property("checked", allChecked);
-  }
+  // Optional: To clear the brush and reset grey areas
+  svg.on("dblclick", () => {
+    brushGroup.call(brush.move, null);  // Clear brush selection
+    greyLeft.attr("width", 0);          // Reset left grey area
+    greyRight.attr("x", svgWidth).attr("width", 0);  // Reset right grey area
+  });
 }
 
 function createJitterPlot(data) {
@@ -570,8 +765,6 @@ function createJitterPlot(data) {
   const svgWidth = container.node().getBoundingClientRect().width;
   const svgHeight = container.node().getBoundingClientRect().height;
   const margin = 70;
-
-  const color = d3.scaleOrdinal(d3.schemePaired);
 
   const aggregatedData = Array.from(
     d3.rollup(
@@ -617,6 +810,7 @@ function createJitterPlot(data) {
 
   const svg = container
     .append("svg")
+    .attr("id", "jitter-plot")
     .attr("width", svgWidth)
     .attr("height", svgHeight);
 
@@ -631,13 +825,23 @@ function createJitterPlot(data) {
     .style("border-radius", "4px")
     .style("pointer-events", "none")
     .style("opacity", 0);
+    
+
+  // Create a brush
+  const brush = d3.brush()
+    .extent([[0, 0], [svgWidth, svgHeight]])
+    .on("start brush end", brushed);
+
+  svg.append("g")
+    .attr("class", "brush")
+    .call(brush);
 
   svg
     .selectAll("circle")
     .data(aggregatedData)
     .enter()
     .append("circle")
-    .attr("class", "jitter-dot")
+    .attr("class", (d) => `circle ${acronyms[d.Genre]} ${createClassNames(d.Game)}`)
     .attr(
       "cx",
       (d) =>
@@ -649,35 +853,136 @@ function createJitterPlot(data) {
         playerScale(d.TotalPlayers) + (Math.random() - 0.5) * verticalJitter
     )
     .attr("r", 5)
-    .style("fill", (d) => color(d.Genre))
+    .style("fill", (d) => colorScheme[d.Genre])
     .style("cursor", "pointer") // Change cursor to pointer
     .style("stroke", "#777")
     .style("stroke-width", 1)
     .on("mouseover", function (event, d) {
-      d3.select(this)
-        .transition()
-        .duration(200)
-        .attr("r", 8)
-        .style("stroke", "black")
-        .style("stroke-width", 2);
-      tooltip.transition().duration(200).style("opacity", 1);
-      tooltip
-        .html(
-          `Game: ${d.Game} <br>Players: ${d.TotalPlayers} <br>Genre: ${d.Genre}`
-        )
-        .style("left", `${event.pageX + 10}px`)
-        .style("top", `${event.pageY - 20}px`);
+      const color = d3.select(this).style("fill");
+      const classes = d3.select(this).attr("class").split(' ');
+      const genre = classes[1];
+      const game = classes[2];
+      if(!isSelected) {
+        d3.selectAll(".line").style("stroke", "grey").style("opacity", "0.2")
+        d3.selectAll(`.line.${genre}`).style("stroke", color).style("opacity", "1")
+        d3.selectAll(".circle").style("fill", "grey").style("opacity", "0.2")
+        d3.selectAll(`.circle.${genre}`).style("fill", color).style("opacity", "1")
+      }
+      d3.select(`.${game}`).transition().duration(200).attr("r", 8).style("stroke", "black").style("stroke-width", "2");
+
+      tooltip.transition().duration(200).style("opacity", .9);
+      tooltip.html(`Game: ${d.Game}<br>Players: ${d.TotalPlayers}`)
+        .style("left", (event.pageX - 145) + "px")
+        .style("top", (event.pageY - 75) + "px")
+        .style("z-index", "2");
+
     })
-    .on("mouseleave", function () {
-      d3.select(this)
+    .on("mouseleave", function (event, d) {
+      const game = createClassNames(d.Game);
+      d3.select(`.${game}`)
         .transition()
         .duration(200)
         .attr("r", 5)
         .style("stroke", "#777")
         .style("stroke-width", 1);
-      tooltip.transition().duration(200).style("opacity", 0);
-    });
+      if (!isSelected) {
+        d3.selectAll(".line").each(function(d) {
+          const classes = d3.select(this).attr("class").split(' ');;
+          const genre = classes[1];
+          d3.select(this)
+              .style("stroke", colorScheme[getGenreByAcronym(genre)]) // Restore based on genre
+              .style("opacity", "1");
+          });
+  
+        d3.selectAll(".circle").each(function(d) {
+            const classes = d3.select(this).attr("class").split(' ');
+            const genre = classes[1];
+            d3.select(this)
+                .style("fill", colorScheme[getGenreByAcronym(genre)]) // Restore based on genre
+                .style("opacity", "1");
+          });
+      }
 
+      tooltip.transition().duration(500).style("opacity", 0);
+  });
+
+  function brushed(event) {
+
+    // Make sure the selector is correct, i.e. your circles have class="circle"
+    const circles = d3.select("#jitter-plot").selectAll(".circle");
+    const selection = event.selection;
+
+    if (selection) {
+      isSelected = true;
+      const [[x0, y0], [x1, y1]] = selection;
+      const selected = [];
+      circles.each(function(d) {
+        const cx = parseFloat(d3.select(this).attr("cx"));
+        const cy = parseFloat(d3.select(this).attr("cy"));
+        if(cx >= x0 && cx <= x1 && cy >= y0 && cy <= y1){
+          const classes = d3.select(this).attr("class").split(' ');
+          const genre = classes[1];
+          if (!selected.includes(genre)) {
+            selected.push(genre);
+          }
+        }
+      });
+      d3.selectAll(".line").style("stroke", "grey").style("opacity", "0.2")
+      d3.selectAll(".circle").style("fill", "grey").style("opacity", "0.2")
+      selected.forEach((genre) => {
+        d3.selectAll(`.line.${genre}`).style("stroke", colorScheme[getGenreByAcronym(genre)]).style("opacity", "1")
+        d3.selectAll(`.circle.${genre}`).style("fill", colorScheme[getGenreByAcronym(genre)]).style("opacity", "1")
+      });
+      // Highlight circles within the brushed area
+      circles.style("opacity", function (d) {
+        // Check that d contains data and has a Genre property
+        if (!d) return;
+        const cx = parseFloat(d3.select(this).attr("cx"));
+        const cy = parseFloat(d3.select(this).attr("cy"));
+        // Ensure colorScheme[d.Genre] exists
+        return (cx >= x0 && cx <= x1 && cy >= y0 && cy <= y1) ? "1" : (colorScheme[d.Genre] || "grey");
+      });
+
+      // Optionally, grey out non-selected circles
+      circles.style("opacity", function (d) {
+        const cx = parseFloat(d3.select(this).attr("cx"));
+        const cy = parseFloat(d3.select(this).attr("cy"));
+        return (cx >= x0 && cx <= x1 && cy >= y0 && cy <= y1) ? 1 : 0.2;
+      });
+
+      circles.style("fill", function (d) {
+        const cx = parseFloat(d3.select(this).attr("cx"));
+        const cy = parseFloat(d3.select(this).attr("cy"));
+        return (cx >= x0 && cx <= x1 && cy >= y0 && cy <= y1) ? colorScheme[d.Genre]  : "grey";
+      });
+    } else {
+      isSelected = false;
+      circles.style("opacity", "1");
+      circles.each(function(d) {
+        const classes = d3.select(this).attr("class").split(' ');
+        const genre = classes[1];
+        d3.select(this)
+            .style("fill", colorScheme[getGenreByAcronym(genre)]) // Restore based on genre
+            .style("opacity", "1");
+      });
+      const linechart = d3.select("#line-chart");
+      linechart.selectAll(".line").each(function(d) {
+        const classes = d3.select(this).attr("class").split(' ');
+        const genre = classes[1];
+        d3.select(this)
+            .style("stroke", colorScheme[getGenreByAcronym(genre)]) // Restore based on genre
+            .style("opacity", "1");
+        });
+
+        linechart.selectAll(".circle").each(function(d) {
+          const classes = d3.select(this).attr("class").split(' ');
+          const genre = classes[1];
+          d3.select(this).transition().duration(200).attr("r", "5")
+              .style("fill", colorScheme[getGenreByAcronym(genre)]) // Restore based on genre
+              .style("opacity", "1");
+        });
+      }
+    }
   // Axes
   svg
     .append("g")
@@ -705,235 +1010,165 @@ function createJitterPlot(data) {
     .attr("text-anchor", "middle")
     .attr("transform", "rotate(-90)")
     .text("Player Base");
+
 }
 
-function updateLineChart(data) {
-  const container = d3.select(".LineChart");
-  console.log("update data");
-  d3.select("svg").remove();
+function updateJitterPlot(data) {
+  const container = d3.select(".JitterPlot");
 
   const svgWidth = container.node().getBoundingClientRect().width;
   const svgHeight = container.node().getBoundingClientRect().height;
   const margin = 70;
 
-  const color = d3.scaleOrdinal(d3.schemePaired);
+  const aggregatedData = Array.from(
+    d3.rollup(
+      data,
+      (v) => d3.sum(v, (d) => d.Players), // Sum the player base for each game
+      (d) => d.Game, // Group by game
+      (d) => d.Genre // Map genre as well
+    ),
+    ([game, genreMap]) => ({
+      Game: game,
+      Genre: Array.from(genreMap.keys())[0], // Extract genre (assuming a game belongs to one genre)
+      TotalPlayers: Array.from(genreMap.values())[0], // Sum of players across all years
+    })
+  );
 
-  const xScale = d3
+  const genres = [...new Set(data.map((d) => d.Genre))];
+  const genreName = genres.map((genre) => acronyms[genre]);
+
+  const offset = margin * 0.5;
+  const genreScale = d3
     .scalePoint()
-    .domain(years)
-    .range([margin, svgWidth - margin * 0.5]);
+    .domain(genreName)
+    .range([margin + offset, svgWidth - margin * 0.5]);
 
-  const yScale = d3
+  const playerScale = d3
     .scaleLinear()
-    .domain([
-      0,
-      d3.max(data, (genreData) => d3.max(genreData.values, (d) => d.Earnings)),
-    ])
+    .domain([0, d3.max(aggregatedData, (d) => d.TotalPlayers)])
     .range([svgHeight - margin, margin * 0.15]);
 
-  const svg = d3
-    .select(".LineChart")
-    .append("svg")
-    .attr("width", svgWidth)
-    .attr("height", svgHeight);
+  const horizontalJitter = 40;
+  const verticalJitter = 0;
 
-  const line = d3
-    .line()
-    .x((d) => xScale(d.Year))
-    .y((d) => yScale(d.Earnings));
+  const svg = d3.select("#jitter-plot");
 
-  console.log(xScale);
+  // Bind data to circles
+  const circles = svg.selectAll("circle")
+    .data(aggregatedData, d => d.Game); // Use game name as unique key
 
-  data.forEach((genreData, index) => {
-    const genreColor = colorScheme[genreData.genre];
+  // Update existing circles
+  circles
+    .transition()
+    .duration(500)
+    .attr(
+      "cx",
+      (d) =>
+        genreScale(acronyms[d.Genre]) + (Math.random() - 0.5) * horizontalJitter
+    )
+    .attr(
+      "cy",
+      (d) =>
+        playerScale(d.TotalPlayers) + (Math.random() - 0.5) * verticalJitter
+    )
+    .style("fill", (d) => colorScheme[d.Genre]);
 
-    const tooltip = d3
-      .select(".LineChart")
-      .append("div")
-      .attr("class", "tooltip")
-      .style("position", "absolute")
-      .style("padding", "8px")
-      .style("background-color", "white")
-      .style("border", "1px solid #ccc")
-      .style("border-radius", "4px")
-      .style("pointer-events", "none")
-      .style("opacity", 0);
+  // Enter selection: Create new circles for new data points
+  circles
+    .enter()
+    .append("circle")
+    .style("cursor", "pointer")
+    .attr("class", (d) => `circle ${acronyms[d.Genre]} ${createClassNames(d.Game)}`)
+    .attr("r", 5)
+    .attr(
+      "cx",
+      (d) =>
+        genreScale(acronyms[d.Genre]) + (Math.random() - 0.5) * horizontalJitter
+    )
+    .attr(
+      "cy",
+      (d) =>
+        playerScale(d.TotalPlayers) + (Math.random() - 0.5) * verticalJitter
+    )
+    .style("fill", (d) => colorScheme[d.Genre])
+    .style("stroke", "#777")
+    .style("stroke-width", 1)
+    .on("mouseover", function (event, d) {
+      const tooltip = d3.select(".tooltip");
+      const color = d3.select(this).style("fill");
+      const classes = d3.select(this).attr("class").split(' ');
+      const genre = classes[1];
+      const game = classes[2];
+      if(!isSelected) {
+        d3.selectAll(".line").style("stroke", "grey").style("opacity", "0.2")
+        d3.selectAll(`.line.${genre}`).style("stroke", color).style("opacity", "1")
+        d3.selectAll(".circle").style("fill", "grey").style("opacity", "0.2")
+        d3.selectAll(`.circle.${genre}`).style("fill", color).style("opacity", "1")
+      }
+      d3.select(`.${game}`).transition().duration(200).attr("r", 8).style("stroke", "black").style("stroke-width", "2");
 
-    svg
-      .append("path")
-      .datum(genreData.values)
-      .attr("class", `line line-${index}`)
-      .attr("id", `${genreData.genre}`)
-      .attr("d", line)
-      .attr("fill", "none")
-      .attr("stroke", genreColor)
-      .attr("stroke-width", 3)
-      .style("opacity", 1) // Set initial opacity to full
-      .style("cursor", "pointer") // Change cursor to pointer
-      .on("mouseover", function (event, d) {
-        d3.select(this)
-          .transition()
-          .duration(200)
-          .attr("r", 8)
-          .attr("stroke-width", 5);
-        tooltip.transition().duration(200).style("opacity", 1);
-        tooltip
-          .html(`Genre: ${genreData.genre}`)
-          .style("left", `${event.pageX + 10}px`)
-          .style("top", `${event.pageY - 20}px`);
-      })
-      .on("mouseleave", function () {
-        d3.select(this)
-          .transition()
-          .duration(200)
-          .attr("r", 5)
-          .attr("stroke-width", 3);
-        tooltip.transition().duration(200).style("opacity", 0);
-      })
-      .on("click", function () {
-        const isSelected = selectedLines.includes(genreData.genre);
+      tooltip.transition().duration(200).style("opacity", .9);
+      tooltip.html(`Game: ${d.Game}<br>Players: ${d.TotalPlayers}`)
+        .style("left", (event.pageX - 145) + "px")
+        .style("top", (event.pageY - 75) + "px")
+        .style("z-index", "2");
+    })
+    .on("mouseleave", function (event, d) {
+      const tooltip = d3.select(".tooltip");
+      const game = createClassNames(d.Game);
+      d3.select(`.${game}`)
+        .transition()
+        .duration(200)
+        .attr("r", 5)
+        .style("stroke", "#777")
+        .style("stroke-width", 1);
+      if (!isSelected) {
+        d3.selectAll(".line").each(function(d) {
+          const classes = d3.select(this).attr("class").split(' ');;
+          const genre = classes[1];
+          d3.select(this)
+              .style("stroke", colorScheme[getGenreByAcronym(genre)]) // Restore based on genre
+              .style("opacity", "1");
+          });
+  
+        d3.selectAll(".circle").each(function(d) {
+            const classes = d3.select(this).attr("class").split(' ');
+            const genre = classes[1];
+            d3.select(this)
+                .style("fill", colorScheme[getGenreByAcronym(genre)]) // Restore based on genre
+                .style("opacity", "1");
+          });
+      }
 
-        if (isSelected) {
-          // If the line is already selected, remove it from the array
-          selectedLines.splice(selectedLines.indexOf(genreData.genre), 1);
-        } else {
-          // If not, add it to the selected array
-          selectedLines.push(genreData.genre);
-        }
-
-        // Set opacity for all lines
-        svg.selectAll(".line").each(function () {
-          const lineGenre = d3.select(this).attr("id"); // Get genre from line ID
-          d3.select(this).style(
-            "opacity",
-            selectedLines.includes(lineGenre) ? 1 : 0.2
-          );
-        });
-
-        // Set opacity for all circles
-        svg.selectAll(".circle").each(function () {
-          const circleGenre = d3.select(this).attr("id"); // Assuming circles have IDs matching their genres
-          d3.select(this).style(
-            "opacity",
-            selectedLines.includes(circleGenre) ? 1 : 0.2
-          );
-        });
-      });
-
-    svg
-      .selectAll(`.circle-${index}`)
-      .data(genreData.values)
-      .enter()
-      .append("circle")
-      .attr("class", `circle circle-${index}`)
-      .attr("id", `${genreData.genre}`)
-      .attr("r", 5)
-      .style("cursor", "pointer")
-      .attr("cx", (d) => xScale(d.Year))
-      .attr("cy", (d) => yScale(d.Earnings))
-      .style("fill", genreColor)
-      .on("mouseover", function (event, d) {
-        d3.select(this)
-          .transition()
-          .duration(200)
-          .attr("r", 8)
-          .style("stroke", "black")
-          .style("stroke-width", 2);
-        const formattedEarnings = new Intl.NumberFormat("en-US", {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        }).format(d.Earnings);
-        tooltip.transition().duration(200).style("opacity", 1);
-        tooltip
-          .html(`Year: ${d.Year} <br>Earnings: $${formattedEarnings}`)
-          .style("left", `${event.pageX + 10}px`)
-          .style("top", `${event.pageY - 20}px`);
-      })
-      .on("mouseleave", function () {
-        d3.select(this)
-          .transition()
-          .duration(200)
-          .attr("r", 5)
-          .style("stroke", "none");
-        tooltip.transition().duration(200).style("opacity", 0);
-      })
-      .on("click", function () {
-        const isSelected = selectedLines.includes(genreData.genre);
-
-        if (isSelected) {
-          // If the line is already selected, remove it from the array
-          selectedLines.splice(selectedLines.indexOf(genreData.genre), 1);
-        } else {
-          // If not, add it to the selected array
-          selectedLines.push(genreData.genre);
-        }
-
-        // Set opacity for all lines
-        svg.selectAll(".line").each(function () {
-          const lineGenre = d3.select(this).attr("id"); // Get genre from line ID
-          d3.select(this).style(
-            "opacity",
-            selectedLines.includes(lineGenre) ? 1 : 0.2
-          );
-        });
-
-        // Set opacity for all circles
-        svg.selectAll(".circle").each(function () {
-          const circleGenre = d3.select(this).attr("id"); // Assuming circles have IDs matching their genres
-          d3.select(this).style(
-            "opacity",
-            selectedLines.includes(circleGenre) ? 1 : 0.2
-          );
-        });
-      });
-  });
-
-  // X and Y axes
-  svg
-    .append("g")
-    .attr("class", "xAxis")
-    .attr("transform", `translate(0,${svgHeight - margin})`)
-    .call(d3.axisBottom(xScale));
-
-  svg
-    .append("g")
-    .attr("class", "yAxis")
-    .attr("transform", `translate(${margin},0)`)
-    .call(d3.axisLeft(yScale).tickFormat(d3.format(".2s")));
-
-  svg
-    .append("text")
-    .attr("x", svgWidth / 2)
-    .attr("y", svgHeight - margin / 2)
-    .attr("text-anchor", "middle")
-    .text("Years");
-
-  svg
-    .append("text")
-    .attr("x", -svgHeight / 2 + margin / 2)
-    .attr("y", margin / 3)
-    .attr("text-anchor", "middle")
-    .attr("transform", "rotate(-90)")
-    .text("Earnings");
-
-  function toggleLineVisibility(index, visible) {
-    // Check if "All" checkbox should be checked/unchecked
-    checkAllBoxState();
-  }
-
-  // Function to toggle all lines
-  function toggleAllLinesVisibility(visible) {
-    data.forEach((_, index) => {
-      d3.select(`#checkbox-${index}`).property("checked", visible);
-      toggleLineVisibility(index, visible);
+      tooltip.transition().duration(500).style("opacity", 0);
     });
+
+  // Exit selection: Remove circles that no longer have data
+  circles.exit()
+    .transition()
+    .duration(500)
+    .style("opacity", 0)
+    .remove();
+
+  // Update Axes
+  const xAxis = svg.select(".xAxis");
+  const yAxis = svg.select(".yAxis");
+
+  if (xAxis.empty()) {
+    svg.append("g")
+      .attr("class", "xAxis")
+      .attr("transform", `translate(0,${svgHeight - margin})`)
+      .call(d3.axisBottom(genreScale));
+  } else {
+    xAxis.transition().duration(500).call(d3.axisBottom(genreScale));
   }
 
-  // Function to check/uncheck "All" checkbox based on individual selections
-  function checkAllBoxState() {
-    const allChecked = data.every((_, index) =>
-      d3.select(`#checkbox-${index}`).property("checked")
-    );
-    d3.select("#checkbox-all").property("checked", allChecked);
+  if (yAxis.empty()) {
+    svg.append("g")
+      .attr("class", "yAxis")
+      .attr("transform", `translate(${margin},0)`)
+      .call(d3.axisLeft(playerScale));
+  } else {
+    yAxis.transition().duration(500).call(d3.axisLeft(playerScale));
   }
 }
