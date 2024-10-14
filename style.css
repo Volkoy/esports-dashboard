@@ -70,7 +70,7 @@ select {
 }
 
 .title_container {
-  height: 5rem;
+  height: 4rem;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -91,7 +91,7 @@ select {
 }
 
 .visual_container {
-  height: calc(100vh - 5rem);
+  height: calc(100vh - 4rem);
 }
 
 .first_row {

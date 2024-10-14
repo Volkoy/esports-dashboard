@@ -102,8 +102,8 @@ function createGenreFilter(data) {
     .append("div")
     .attr("class", "checkbox-container")
     .style("display", "flex")
-    .style("gap", ".5em")
     .style("flex-direction", "column")
+    .style("justify-content", "space-between")
     .style("height", "100%");
 
   // Add "All" checkbox
