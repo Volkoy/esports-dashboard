@@ -854,6 +854,8 @@ function createLineChart(data) {
     brushGroup.call(brush.move, null); // Clear brush selection
     greyLeft.attr("width", 0); // Reset left grey area
     greyRight.attr("x", svgWidth).attr("width", 0); // Reset right grey area
+    brushedYearEnd = null;
+    brushedYearStart = null;
     updateCharts(globalData);
   });
 }
