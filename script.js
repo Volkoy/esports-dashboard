@@ -1,8 +1,8 @@
 var globalData;
 var originalData;
 
-var brushedYearStart;
-var brushedYearEnd;
+var brushedYearStart = null;
+var brushedYearEnd = null;
 
 var isSelected;
 
