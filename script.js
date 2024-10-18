@@ -74,6 +74,7 @@ function init() {
     createGenreFilter(globalData);
     createLineChart(globalData);
     createJitterPlot(globalData);
+    createParallelCoordinates(globalData);
   });
 }
 
@@ -450,12 +451,12 @@ function updateLineChart(data) {
       .append("g")
       .attr("class", "yAxis")
       .attr("transform", `translate(${margin},0)`)
-      .call(d3.axisLeft(yScale).tickFormat(d3.format(".2s")));
+      .call(d3.axisLeft(yScale).tickFormat(d3.format(".0s")));
   } else {
     yAxis
       .transition()
       .duration(500)
-      .call(d3.axisLeft(yScale).tickFormat(d3.format(".2s")));
+      .call(d3.axisLeft(yScale).tickFormat(d3.format(".0s")));
   }
 }
 
@@ -764,7 +765,7 @@ function createLineChart(data) {
     .append("g")
     .attr("class", "yAxis")
     .attr("transform", `translate(${margin},0)`)
-    .call(d3.axisLeft(yScale).tickFormat(d3.format(".2s")));
+    .call(d3.axisLeft(yScale).tickFormat(d3.format(".0s")));
 
   svg
     .append("text")
@@ -1306,4 +1307,240 @@ function updateJitterPlot(data) {
   } else {
     yAxis.transition().duration(500).call(d3.axisLeft(playerScale));
   }
+}
+
+function createParallelCoordinates(data) {
+  const container = d3.select(".ParallelCoordinates");
+
+  // Get container dimensions
+  const svgWidth = container.node().getBoundingClientRect().width;
+  const svgHeight = container.node().getBoundingClientRect().height;
+  const margin = { top: 20, right: 10, bottom: 20, left: 40 };
+  const width = svgWidth - margin.left - margin.right;
+  const height = svgHeight - margin.top - margin.bottom;
+  const brushHeight = 20;
+  const deselectedColor = "#ddd";
+
+  // Create a dictionary to hold game data
+  const gameDataMap = {};
+
+  // Iterate over the data to aggregate values
+  data.forEach((d) => {
+    const game = d.Game;
+    const genre = d.Genre;
+
+    // Initialize if game doesn't exist in the dictionary
+    if (!gameDataMap[game]) {
+      gameDataMap[game] = {
+        Game: game,
+        Genre: genre, // Store genre
+        TotalPlayers: d.TotalPlayers,
+        TotalTournaments: d.TotalTournaments,
+        TotalEarnings: d.TotalEarnings,
+        ReleaseDate: new Date(d.ReleaseDate), // Set the initial release date
+        OfflineEarnings: d.OfflineEarnings,
+        OnlineEarnings: d.OnlineEarnings,
+      };
+    }
+
+    // Update the earliest release date
+    const currentReleaseDate = new Date(d.ReleaseDate);
+    if (currentReleaseDate < gameDataMap[game].ReleaseDate) {
+      gameDataMap[game].ReleaseDate = currentReleaseDate;
+    }
+  });
+
+  // Convert the gameDataMap to an array
+  const coordinatesData = Object.values(gameDataMap);
+  const aggregatedData = coordinatesData.filter(
+    (d) =>
+      d.TotalPlayers > 0 &&
+      d.TotalTournaments > 0 &&
+      d.TotalEarnings > 0 &&
+      d.OfflineEarnings > 0 &&
+      d.OnlineEarnings > 0
+  );
+
+  // Define the keys for parallel coordinates
+  const keys = Object.keys(aggregatedData[0]).filter(
+    (key) => key !== "Game" && key !== "Genre"
+  );
+
+  const x = new Map(
+    keys.map((key) => [
+      key,
+      key === "ReleaseDate"
+        ? d3
+            .scaleLinear() // Use time scale for ReleaseDate
+            .domain(d3.extent(aggregatedData, (d) => new Date(d[key]))) // Set domain using the extent of ReleaseDate
+            .range([margin.left, width - margin.right])
+        : d3
+            .scaleLog() // Use log scale for other keys
+            .domain(
+              d3
+                .extent(aggregatedData, (d) => d[key])
+                .map((d) => (d > 0 ? d : 1))
+            ) // Ensure domain starts from 1 to avoid log(0)
+            .range([margin.left, width - margin.right]),
+    ])
+  );
+
+  const y = d3.scalePoint(keys, [margin.top, height - margin.bottom]);
+  const color = d3
+    .scaleSequential(d3.interpolateBrBG)
+    .domain(d3.extent(aggregatedData, (d) => d.TotalPlayers));
+
+  // Create SVG
+  const svg = container
+    .append("svg")
+    .attr("width", svgWidth)
+    .attr("height", svgHeight)
+    .attr("viewBox", [0, 0, svgWidth, svgHeight]);
+
+  // Create the line path generator
+  const line = d3
+    .line()
+    .defined(([, value]) => value != null)
+    .x(([key, value]) => x.get(key)(value))
+    .y(([key]) => y(key));
+
+  // Add lines to the SVG
+  const path = svg
+    .append("g")
+    .attr("fill", "none")
+    .attr("stroke-width", 2.5)
+    .attr("stroke-opacity", 0.5)
+    .selectAll("path")
+    .data(aggregatedData)
+    .join("path")
+    .attr("stroke", (d) => colorScheme[d.Genre])
+    .attr("d", (d) => {
+      const lineData = keys.map((key) => [key, d[key]]);
+      return line(lineData); // Ensure proper mapping
+    })
+    .on("mouseover", function (event, d) {
+      tooltip.transition().duration(200).style("opacity", 1);
+      tooltip;
+      d3.select(this)
+        .attr("stroke-width", 5)
+        .style("opacity", 1)
+        .style("cursor", "pointer"); // Highlight the line
+
+      // Display game details (all attributes) on hover in a tooltip or info box
+      d3.select("#tooltip")
+        .style("visibility", "visible")
+        .html(
+          `
+          <strong>Game Details:</strong><br/>
+          TotalPlayers: ${d.TotalPlayers}<br/>
+          TotalTournaments: ${d.TotalTournaments}<br/>
+          TotalEarnings: ${d.TotalEarnings}<br/>
+          OfflineEarnings: ${d.OfflineEarnings}<br/>
+          OnlineEarnings: ${d.OnlineEarnings}<br/>
+        `
+        )
+        .style("top", event.pageY + 10 + "px")
+        .style("left", event.pageX + 10 + "px");
+    })
+    .on("mouseleave", function () {
+      d3.select(this).attr("stroke-width", 2.5).attr("stroke-opacity", 0.5); // Reset line style
+
+      // Hide the tooltip when mouseout
+      d3.select("#tooltip").style("visibility", "hidden");
+    });
+
+  // Create the tooltip div
+  var tooltip = d3
+    .select("body")
+    .append("div")
+    .attr("id", "tooltip")
+    .style("position", "absolute")
+    .style("background", "#f9f9f9")
+    .style("padding", "8px")
+    .style("border", "1px solid #ccc")
+    .style("border-radius", "4px")
+    .style("visibility", "hidden");
+
+  // Add axis for each key
+  const axes = svg
+    .append("g")
+    .selectAll("g")
+    .data(keys)
+    .join("g")
+    .attr("transform", (d) => `translate(0,${y(d)})`)
+    .each(function (d) {
+      const axis = d3.axisBottom(x.get(d));
+
+      // Set ticks count
+      const tickCount = 10;
+
+      // Format the ticks based on the data type
+      if (d === "ReleaseDate") {
+        const dateTicks = x.get(d).ticks(tickCount);
+      } else {
+        const logTicks = x.get(d).ticks(tickCount);
+        axis.tickFormat(d3.format(".0s")); // Format as integer
+      }
+      d3.select(this)
+        .call(axis)
+        .selectAll("text") // Customize tick text
+        .attr("fill", "currentColor")
+        .attr("font-size", "10px");
+    })
+    .call((g) =>
+      g
+        .append("text")
+        .attr("x", margin.left)
+        .attr("y", -6)
+        .attr("text-anchor", "start")
+        .attr("fill", "currentColor")
+        .text((d) => d)
+    )
+    .call((g) =>
+      g
+        .selectAll("text")
+        .clone(true)
+        .lower()
+        .attr("fill", "none")
+        .attr("stroke-width", 5)
+        .attr("stroke-linejoin", "round")
+        .attr("stroke", "white")
+    );
+
+  // Add brush functionality
+  const brush = d3
+    .brushX()
+    .extent([
+      [margin.left, -(brushHeight / 2)],
+      [width - margin.right, brushHeight / 2],
+    ])
+    .on("start brush end", brushed);
+
+  axes.call(brush);
+
+  const selections = new Map();
+
+  function brushed({ selection }, key) {
+    if (selection === null) selections.delete(key);
+    else selections.set(key, selection.map(x.get(key).invert));
+
+    const selected = [];
+    path.each(function (d) {
+      const active = Array.from(selections).every(
+        ([key, [min, max]]) => d[key] >= min && d[key] <= max
+      );
+      d3.select(this).style(
+        "stroke",
+        active ? colorScheme[d.Genre] : deselectedColor
+      );
+      if (active) {
+        d3.select(this).raise();
+        selected.push(d);
+      }
+    });
+
+    svg.property("value", selected).dispatch("input");
+  }
+
+  return svg.node();
 }
