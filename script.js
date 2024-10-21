@@ -456,7 +456,6 @@ function updateLineChart(data) {
 
   // Exit selection: Remove circles that no longer have data
   circles.exit().transition().duration(500).style("opacity", 0).remove();
-  d3.selectAll(".brush").raise()
 
   // Update the axes
   const xAxis = svg.select(".xAxis");
