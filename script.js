@@ -456,6 +456,7 @@ function updateLineChart(data) {
 
   // Exit selection: Remove circles that no longer have data
   circles.exit().transition().duration(500).style("opacity", 0).remove();
+  d3.selectAll(".brush").raise()
 
   // Update the axes
   const xAxis = svg.select(".xAxis");
@@ -1557,7 +1558,22 @@ function createParallelCoordinates(data) {
       } else {
         d3.select(this)
           .style("stroke-width", "5")
+          .style("stroke-opacity", 1)
           .style("cursor", "pointer");
+
+        d3.select("#jitter-plot").selectAll(".circle").style("fill", "grey").style("opacity", "0.2");
+        d3.selectAll(`.circle.${genre}.${game}`)
+          .style("fill", colorScheme[getGenreByAcronym(genre)])
+          .style("stroke","black")
+          .style("stroke-width", 2)
+          .style("opacity", "1");
+
+        d3.select("#line-chart").selectAll(".line").style("stroke", "grey").style("opacity", "0.2");
+        d3.select("#line-chart").selectAll(".circle").style("fill", "grey").style("opacity", "0.2");
+      
+        d3.select("#line-chart").selectAll(`.line.${genre}`).style("stroke", colorScheme[getGenreByAcronym(genre)]).style("opacity", "1");
+        d3.select("#line-chart").selectAll(`.circle.${genre}`).style("fill", colorScheme[getGenreByAcronym(genre)]).style("opacity", "1");
+        
       }
 
       // Display game details (all attributes) on hover in a tooltip or info box
@@ -1654,7 +1670,33 @@ function createParallelCoordinates(data) {
             .style("opacity", 1);
         });
       } else {
-        d3.select(this).style("stroke-width", "3")
+        d3.select(this).style("stroke-width", "3").style("stroke-opacity", 0.2);
+        d3.select("#line-chart").selectAll(".line").each(function (d) {
+          const classes = d3.select(this).attr("class").split(" ");
+          const genre = classes[1];
+          const game = classes[2];
+          d3.select(this)
+            .style("stroke", colorScheme[getGenreByAcronym(genre)])
+            .style("opacity", 1);
+        });
+        d3.select("#line-chart").selectAll(".circle").each(function (d) {
+          const classes = d3.select(this).attr("class").split(" ");
+          const genre = classes[1];
+          const game = classes[2];
+          d3.select(this)
+            .style("fill", colorScheme[getGenreByAcronym(genre)])
+            .style("opacity", 1);
+        });
+        d3.select("#jitter-plot").selectAll(".circle").each(function (d) {
+          const classes = d3.select(this).attr("class").split(" ");
+          const genre = classes[1];
+          const game = classes[2];
+          d3.select(this)
+            .style("fill", colorScheme[getGenreByAcronym(genre)])
+            .style("stroke", "grey")
+            .style("stroke-width", 1)
+            .style("opacity", 1);
+        });
       }
       // Hide the tooltip when mouseout
       d3.select("#tooltip").style("visibility", "hidden");
@@ -1672,6 +1714,38 @@ function createParallelCoordinates(data) {
     .style("border-radius", "4px")
     .style("visibility", "hidden");
 
+  const drag = d3.drag()
+  .on("start", function (event, d) {
+    d3.select(this).style("stroke", "black").raise();
+  })
+  .on("drag", function (event, d) {
+    const mouseX = event.x;
+
+    // Determine the new index based on the mouse position
+    const newIndex = keys.reduce((closestIndex, key, index) => {
+      const axisPosition = x(key);
+      const distance = Math.abs(mouseX - axisPosition); // Calculate distance from mouse to axis position
+      
+      // Find the closest axis
+      return distance < Math.abs(mouseX - x(keys[closestIndex])) ? index : closestIndex;
+    }, 0); // Start with the first axis as the closest
+
+    // Move the dragged axis if the new index is different
+    const currentIndex = keys.indexOf(d);
+    if (newIndex !== currentIndex && newIndex !== -1) {
+      // Move the axis in the keys array
+      const draggedKey = keys.splice(currentIndex, 1)[0]; // Remove the dragged key
+      keys.splice(newIndex, 0, draggedKey); // Insert it in the new position
+
+      x.domain(keys); // Update the scale domain with new order
+      updateAxesAndLines(); // Update axes and lines based on the new order
+    }
+  })
+  .on("end", function (event, d) {
+    d3.select(this).style("stroke", "none"); // Reset stroke color when drag ends
+  });
+
+  
 
   const customTicks = {
     TotalPlayers: [1, 10, 100, 1000, 10000, 100000],
@@ -1742,8 +1816,10 @@ function createParallelCoordinates(data) {
       [brushWidth / 2, height - margin.bottom],
     ])
     .on("start brush end", brushed);
-
+  
+    
   axes.call(brush);
+  axes.call(drag);
 
   const selections = new Map();
 
@@ -1774,6 +1850,24 @@ function createParallelCoordinates(data) {
     });
     svg.property("value", selected).dispatch("input");
   }
+
+  function updateAxesAndLines() {
+    // Update axes positions
+    svg.selectAll(".axis")
+      .transition() // Add a transition for smoother movement
+      .duration(200) // Duration of the transition
+      .attr("transform", (d) => `translate(${x(d)},0)`);
+  
+    // Update line paths
+    svg.selectAll("path.line-coordinate") // Select the individual line paths directly
+      .transition()
+      .duration(200) // Duration of the transition
+      .attr("d", (d) => {
+        const lineData = keys.map((key) => [key, d[key]]);
+        return line(lineData);
+      });
+  }
+  
 }
 
 
@@ -1871,6 +1965,37 @@ function updateParallelCoordinates(data) {
     OnlineEarnings: [1, 10, 100, 1000],
     ReleaseYear: d3.range(1985, 2025, 5)
   };
+
+  const drag = d3.drag()
+  .on("start", function (event, d) {
+    d3.select(this).style("stroke", "black").raise();
+  })
+  .on("drag", function (event, d) {
+    const mouseX = event.x;
+
+    // Determine the new index based on the mouse position
+    const newIndex = keys.reduce((closestIndex, key, index) => {
+      const axisPosition = x(key);
+      const distance = Math.abs(mouseX - axisPosition); // Calculate distance from mouse to axis position
+      
+      // Find the closest axis
+      return distance < Math.abs(mouseX - x(keys[closestIndex])) ? index : closestIndex;
+    }, 0); // Start with the first axis as the closest
+
+    // Move the dragged axis if the new index is different
+    const currentIndex = keys.indexOf(d);
+    if (newIndex !== currentIndex && newIndex !== -1) {
+      // Move the axis in the keys array
+      const draggedKey = keys.splice(currentIndex, 1)[0]; // Remove the dragged key
+      keys.splice(newIndex, 0, draggedKey); // Insert it in the new position
+
+      x.domain(keys); // Update the scale domain with new order
+      updateAxesAndLines(); // Update axes and lines based on the new order
+    }
+  })
+  .on("end", function (event, d) {
+    d3.select(this).style("stroke", "none"); // Reset stroke color when drag ends
+  });
 
   // Create or update axes
   const axesGroup = container.select(".axes");
@@ -2115,6 +2240,24 @@ function updateParallelCoordinates(data) {
     .on("start brush end", brushed);
 
   axisSelection.call(brush);
+  axisSelection.call(drag);
+
+  function updateAxesAndLines() {
+    // Update axes positions
+    svg.selectAll(".axis")
+      .transition() // Add a transition for smoother movement
+      .duration(200) // Duration of the transition
+      .attr("transform", (d) => `translate(${x(d)},0)`);
+  
+    // Update line paths
+    svg.selectAll("path.line-coordinate") // Select the individual line paths directly
+      .transition()
+      .duration(200) // Duration of the transition
+      .attr("d", (d) => {
+        const lineData = keys.map((key) => [key, d[key]]);
+        return line(lineData);
+      });
+  }
 
   const selections = new Map();
 
