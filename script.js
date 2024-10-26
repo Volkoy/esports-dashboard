@@ -303,8 +303,13 @@ function updateLineChart(data) {
           .style("fill", color)
           .style("opacity", "1");
 
-        d3.selectAll(".line-coordinate").style("stroke", "grey").style("stroke-opacity", "0.1");
-        d3.selectAll(`.line-coordinate.${genre}`).style("stroke", color).style("stroke-opacity", "0.5").style("stroke-width", "5");;
+        d3.selectAll(".line-coordinate")
+          .style("stroke", "grey")
+          .style("stroke-opacity", "0.1");
+        d3.selectAll(`.line-coordinate.${genre}`)
+          .style("stroke", color)
+          .style("stroke-opacity", "0.5")
+          .style("stroke-width", "5");
       }
       d3.selectAll(`.line.${genre}`)
         .transition()
@@ -407,8 +412,13 @@ function updateLineChart(data) {
           .style("fill", color)
           .style("opacity", "1");
 
-        d3.selectAll(".line-coordinate").style("stroke", "grey").style("stroke-opacity", "0.1");
-        d3.selectAll(`.line-coordinate.${genre}`).style("stroke", color).style("stroke-opacity", "0.5").style("stroke-width", "5");
+        d3.selectAll(".line-coordinate")
+          .style("stroke", "grey")
+          .style("stroke-opacity", "0.1");
+        d3.selectAll(`.line-coordinate.${genre}`)
+          .style("stroke", color)
+          .style("stroke-opacity", "0.5")
+          .style("stroke-width", "5");
       }
       d3.select(this).transition().duration(200).attr("r", "8");
     })
@@ -477,12 +487,12 @@ function updateLineChart(data) {
       .append("g")
       .attr("class", "yAxis")
       .attr("transform", `translate(${margin},0)`)
-      .call(d3.axisLeft(yScale).tickFormat(d3.format(".0s")));
+      .call(d3.axisLeft(yScale).tickFormat(d3.format(".2s")));
   } else {
     yAxis
       .transition()
       .duration(500)
-      .call(d3.axisLeft(yScale).tickFormat(d3.format(".0s")));
+      .call(d3.axisLeft(yScale).tickFormat(d3.format(".2s")));
   }
 }
 
@@ -683,9 +693,14 @@ function createLineChart(data) {
           d3.selectAll(`.circle.${genre}`)
             .style("fill", color)
             .style("opacity", "1");
-          
-          d3.selectAll(".line-coordinate").style("stroke", "grey").style("stroke-opacity", "0.1");
-          d3.selectAll(`.line-coordinate.${genre}`).style("stroke", color).style("stroke-opacity", "0.5").style("stroke-width", "5");
+
+          d3.selectAll(".line-coordinate")
+            .style("stroke", "grey")
+            .style("stroke-opacity", "0.1");
+          d3.selectAll(`.line-coordinate.${genre}`)
+            .style("stroke", color)
+            .style("stroke-opacity", "0.5")
+            .style("stroke-width", "5");
         }
         d3.selectAll(`.line.${genre}`)
           .transition()
@@ -766,8 +781,13 @@ function createLineChart(data) {
             .style("fill", color)
             .style("opacity", "1");
 
-          d3.selectAll(".line-coordinate").style("stroke", "grey").style("stroke-opacity", "0.1");
-          d3.selectAll(`.line-coordinate.${genre}`).style("stroke", color).style("stroke-opacity", "0.5").style("stroke-width", "5");
+          d3.selectAll(".line-coordinate")
+            .style("stroke", "grey")
+            .style("stroke-opacity", "0.1");
+          d3.selectAll(`.line-coordinate.${genre}`)
+            .style("stroke", color)
+            .style("stroke-opacity", "0.5")
+            .style("stroke-width", "5");
         }
         d3.select(this).transition().duration(200).attr("r", "8");
       })
@@ -900,7 +920,7 @@ function createLineChart(data) {
     // Update the grey-out areas in the line chart (optional visual feedback)
     greyLeft.attr("width", x0 - margin); // Grey out the area before the brush
     greyRight.attr("x", x1).attr("width", svgWidth - margin / 3 - x1); // Grey out the area after the brush
-    
+
     updateParallelCoordinates(filteredData);
   }
 
@@ -1026,9 +1046,17 @@ function createJitterPlot(data) {
       if (!isSelected) {
         d3.selectAll(".line").style("stroke", "grey").style("opacity", "0.2");
 
-        d3.selectAll(".line-coordinate").style("stroke", "grey").style("stroke-opacity", "0.1");
-        d3.selectAll(`.line-coordinate.${genre}`).style("stroke", color).style("stroke-opacity", "0.2").style("stroke-width", "5");
-        d3.selectAll(`.line-coordinate.${genre}.${game}`).style("stroke", color).style("stroke-opacity", "1").style("stroke-width", "5");
+        d3.selectAll(".line-coordinate")
+          .style("stroke", "grey")
+          .style("stroke-opacity", "0.1");
+        d3.selectAll(`.line-coordinate.${genre}`)
+          .style("stroke", color)
+          .style("stroke-opacity", "0.2")
+          .style("stroke-width", "5");
+        d3.selectAll(`.line-coordinate.${genre}.${game}`)
+          .style("stroke", color)
+          .style("stroke-opacity", "1")
+          .style("stroke-width", "5");
 
         d3.selectAll(`.line.${genre}`)
           .style("stroke", color)
@@ -1111,13 +1139,15 @@ function createJitterPlot(data) {
             selected.push(genre);
           }
           if (!selectGames.includes(game)) {
-            selectGames.push([genre,game]);
+            selectGames.push([genre, game]);
           }
         }
       });
       d3.selectAll(".line").style("stroke", "grey").style("opacity", "0.2");
       d3.selectAll(".circle").style("fill", "grey").style("opacity", "0.2");
-      d3.selectAll(".line-coordinate").style("stroke", "grey").style("stroke-opacity", "0.1");
+      d3.selectAll(".line-coordinate")
+        .style("stroke", "grey")
+        .style("stroke-opacity", "0.1");
       selected.forEach((genre) => {
         d3.selectAll(`.line.${genre}`)
           .style("stroke", colorScheme[getGenreByAcronym(genre)])
@@ -1128,8 +1158,11 @@ function createJitterPlot(data) {
       });
 
       selectGames.forEach((game) => {
-        d3.select(`.line-coordinate.${game[0]}.${game[1]}`).style("stroke", colorScheme[getGenreByAcronym(game[0])]).style("stroke-opacity", "1").style("stroke-width", "3");
-      })
+        d3.select(`.line-coordinate.${game[0]}.${game[1]}`)
+          .style("stroke", colorScheme[getGenreByAcronym(game[0])])
+          .style("stroke-opacity", "1")
+          .style("stroke-width", "3");
+      });
       // Highlight circles within the brushed area
       circles.style("opacity", function (d) {
         // Check that d contains data and has a Genre property
@@ -1156,8 +1189,6 @@ function createJitterPlot(data) {
           ? colorScheme[d.Genre]
           : "grey";
       });
-
-      
     } else {
       isSelected = false;
       circles.style("opacity", "1");
@@ -1209,7 +1240,12 @@ function createJitterPlot(data) {
     .append("g")
     .attr("class", "yAxis")
     .attr("transform", `translate(${margin},0)`)
-    .call(d3.axisLeft(playerScale).tickValues([1, 10, 100, 1000, 10000, 100000]).tickFormat(d3.format(".0s")));
+    .call(
+      d3
+        .axisLeft(playerScale)
+        .tickValues([1, 10, 100, 1000, 10000, 100000])
+        .tickFormat(d3.format(".0s"))
+    );
 
   svg
     .append("text")
@@ -1318,9 +1354,16 @@ function updateJitterPlot(data) {
       const game = classes[2];
       if (!isSelected) {
         d3.selectAll(".line").style("stroke", "grey").style("opacity", "0.2");
-        d3.selectAll(".line-coordinate").style("stroke", "grey").style("stroke-opacity", "0.1");
-        d3.selectAll(`.line-coordinate.${genre}`).style("stroke", color).style("stroke-opacity", "0.5");
-        d3.selectAll(`.line-coordinate.${genre}.${game}`).style("stroke", color).style("stroke-opacity", "1").style("stroke-width", "5");
+        d3.selectAll(".line-coordinate")
+          .style("stroke", "grey")
+          .style("stroke-opacity", "0.1");
+        d3.selectAll(`.line-coordinate.${genre}`)
+          .style("stroke", color)
+          .style("stroke-opacity", "0.5");
+        d3.selectAll(`.line-coordinate.${genre}.${game}`)
+          .style("stroke", color)
+          .style("stroke-opacity", "1")
+          .style("stroke-width", "5");
         d3.selectAll(`.line.${genre}`)
           .style("stroke", color)
           .style("opacity", "1");
@@ -1406,7 +1449,15 @@ function updateJitterPlot(data) {
       .attr("transform", `translate(${margin},0)`)
       .call(d3.axisLeft(playerScale));
   } else {
-    yAxis.transition().duration(500).call(d3.axisLeft(playerScale).tickValues([1, 10, 100, 1000, 10000, 100000]).tickFormat(d3.format(".0s")));
+    yAxis
+      .transition()
+      .duration(500)
+      .call(
+        d3
+          .axisLeft(playerScale)
+          .tickValues([1, 10, 100, 1000, 10000, 100000])
+          .tickFormat(d3.format(".0s"))
+      );
   }
 }
 
@@ -1419,7 +1470,7 @@ function createParallelCoordinates(data) {
   const margin = { top: 30, right: 10, bottom: 0, left: 50 };
   const width = svgWidth - margin.left - margin.right;
   const height = svgHeight - margin.top - margin.bottom;
-  const brushWidth  = 20;
+  const brushWidth = 20;
   const deselectedColor = "#ddd";
 
   // Create a dictionary to hold game data
@@ -1449,7 +1500,7 @@ function createParallelCoordinates(data) {
 
   // Convert the gameDataMap to an array
   const coordinatesData = Object.values(gameDataMap);
-  const aggregatedData = coordinatesData.map(d => ({
+  const aggregatedData = coordinatesData.map((d) => ({
     ...d,
     TotalPlayers: d.TotalPlayers > 0 ? d.TotalPlayers : 1, // Replace 0 with 1
     TotalTournaments: d.TotalTournaments > 0 ? d.TotalTournaments : 1, // Replace 0 with 1
@@ -1458,8 +1509,14 @@ function createParallelCoordinates(data) {
     OnlineEarnings: d.OnlineEarnings > 0 ? d.OnlineEarnings : 1, // Replace 0 with 1
   }));
 
-  const keys = ["TotalPlayers", "TotalTournaments", "TotalEarnings", "ReleaseYear", "OfflineEarnings", "OnlineEarnings"]
-
+  const keys = [
+    "TotalPlayers",
+    "TotalTournaments",
+    "TotalEarnings",
+    "ReleaseYear",
+    "OfflineEarnings",
+    "OnlineEarnings",
+  ];
 
   const y = new Map(
     keys.map((key) => [
@@ -1473,7 +1530,7 @@ function createParallelCoordinates(data) {
             .scaleLog() // Use log scale for other keys
             .domain(
               d3
-                .extent(aggregatedData, (d) => (d[key]))
+                .extent(aggregatedData, (d) => d[key])
                 .map((d) => (d > 0 ? d : 1))
             ) // Ensure domain starts from 1 to avoid log(0)
             .range([height - margin.bottom, margin.top]),
@@ -1487,7 +1544,7 @@ function createParallelCoordinates(data) {
     .append("svg")
     .attr("width", svgWidth)
     .attr("height", svgHeight)
-    .attr("id", "parallel-coordinates")
+    .attr("id", "parallel-coordinates");
 
   // Create the line path generator
   const line = d3
@@ -1535,44 +1592,75 @@ function createParallelCoordinates(data) {
       const game = classes[2];
 
       if (!isSelected && !parallelSelected) {
-        d3.selectAll(".line-coordinate").style("stroke", "grey").style("stroke-opacity", "0.1")
+        d3.selectAll(".line-coordinate")
+          .style("stroke", "grey")
+          .style("stroke-opacity", "0.1");
         d3.select(this)
           .style("stroke-width", "5")
           .style("stroke", colorScheme[getGenreByAcronym(genre)])
           .style("stroke-opacity", "1")
           .style("cursor", "pointer");
 
-        d3.select("#jitter-plot").selectAll(".circle").style("fill", "grey").style("opacity", "0.2");
+        d3.select("#jitter-plot")
+          .selectAll(".circle")
+          .style("fill", "grey")
+          .style("opacity", "0.2");
         d3.selectAll(`.circle.${genre}.${game}`)
           .style("fill", colorScheme[getGenreByAcronym(genre)])
-          .style("stroke","black")
+          .style("stroke", "black")
           .style("stroke-width", 2)
           .style("opacity", "1");
 
-        d3.select("#line-chart").selectAll(".line").style("stroke", "grey").style("opacity", "0.2");
-        d3.select("#line-chart").selectAll(".circle").style("fill", "grey").style("opacity", "0.2");
-      
-        d3.select("#line-chart").selectAll(`.line.${genre}`).style("stroke", colorScheme[getGenreByAcronym(genre)]).style("opacity", "1");
-        d3.select("#line-chart").selectAll(`.circle.${genre}`).style("fill", colorScheme[getGenreByAcronym(genre)]).style("opacity", "1");
+        d3.select("#line-chart")
+          .selectAll(".line")
+          .style("stroke", "grey")
+          .style("opacity", "0.2");
+        d3.select("#line-chart")
+          .selectAll(".circle")
+          .style("fill", "grey")
+          .style("opacity", "0.2");
+
+        d3.select("#line-chart")
+          .selectAll(`.line.${genre}`)
+          .style("stroke", colorScheme[getGenreByAcronym(genre)])
+          .style("opacity", "1");
+        d3.select("#line-chart")
+          .selectAll(`.circle.${genre}`)
+          .style("fill", colorScheme[getGenreByAcronym(genre)])
+          .style("opacity", "1");
       } else {
         d3.select(this)
           .style("stroke-width", "5")
           .style("stroke-opacity", 1)
           .style("cursor", "pointer");
 
-        d3.select("#jitter-plot").selectAll(".circle").style("fill", "grey").style("opacity", "0.2");
+        d3.select("#jitter-plot")
+          .selectAll(".circle")
+          .style("fill", "grey")
+          .style("opacity", "0.2");
         d3.selectAll(`.circle.${genre}.${game}`)
           .style("fill", colorScheme[getGenreByAcronym(genre)])
-          .style("stroke","black")
+          .style("stroke", "black")
           .style("stroke-width", 2)
           .style("opacity", "1");
 
-        d3.select("#line-chart").selectAll(".line").style("stroke", "grey").style("opacity", "0.2");
-        d3.select("#line-chart").selectAll(".circle").style("fill", "grey").style("opacity", "0.2");
-      
-        d3.select("#line-chart").selectAll(`.line.${genre}`).style("stroke", colorScheme[getGenreByAcronym(genre)]).style("opacity", "1");
-        d3.select("#line-chart").selectAll(`.circle.${genre}`).style("fill", colorScheme[getGenreByAcronym(genre)]).style("opacity", "1");
-        
+        d3.select("#line-chart")
+          .selectAll(".line")
+          .style("stroke", "grey")
+          .style("opacity", "0.2");
+        d3.select("#line-chart")
+          .selectAll(".circle")
+          .style("fill", "grey")
+          .style("opacity", "0.2");
+
+        d3.select("#line-chart")
+          .selectAll(`.line.${genre}`)
+          .style("stroke", colorScheme[getGenreByAcronym(genre)])
+          .style("opacity", "1");
+        d3.select("#line-chart")
+          .selectAll(`.circle.${genre}`)
+          .style("fill", colorScheme[getGenreByAcronym(genre)])
+          .style("opacity", "1");
       }
 
       // Display game details (all attributes) on hover in a tooltip or info box
@@ -1590,42 +1678,43 @@ function createParallelCoordinates(data) {
           OfflineEarnings: ${formattedOnlineEarnings}<br/>
           OnlineEarnings: ${formattedOfflineEarnings}<br/>
         `
-        )
-        const container = d3.select(".ParallelCoordinates").node().getBoundingClientRect();
-        const tooltipNode = tooltip.node();
-        const tooltipWidth = tooltipNode.offsetWidth;
-        const tooltipHeight = tooltipNode.offsetHeight;
+        );
+      const container = d3
+        .select(".ParallelCoordinates")
+        .node()
+        .getBoundingClientRect();
+      const tooltipNode = tooltip.node();
+      const tooltipWidth = tooltipNode.offsetWidth;
+      const tooltipHeight = tooltipNode.offsetHeight;
 
-        // Get cursor position relative to the container
-        const cursorX = event.pageX - container.left;
-        const cursorY = event.pageY - container.top;
+      // Get cursor position relative to the container
+      const cursorX = event.pageX - container.left;
+      const cursorY = event.pageY - container.top;
 
-        // Dynamically calculate offsets based on cursor position
-        let offsetX = 15; // Default horizontal offset
-        let offsetY = 15; // Default vertical offset
+      // Dynamically calculate offsets based on cursor position
+      let offsetX = 15; // Default horizontal offset
+      let offsetY = 15; // Default vertical offset
 
-        // Check if cursor is near the right edge
-        if (cursorX + tooltipWidth + offsetX > container.width) {
-          offsetX = -tooltipWidth - 15; // Move to the left of the cursor
-        }
+      // Check if cursor is near the right edge
+      if (cursorX + tooltipWidth + offsetX > container.width) {
+        offsetX = -tooltipWidth - 15; // Move to the left of the cursor
+      }
 
-        // Check if cursor is near the bottom edge
-        if (cursorY + tooltipHeight + offsetY > container.height) {
-          offsetY = -tooltipHeight - 15; // Move above the cursor
-        }
+      // Check if cursor is near the bottom edge
+      if (cursorY + tooltipHeight + offsetY > container.height) {
+        offsetY = -tooltipHeight - 15; // Move above the cursor
+      }
 
-        // Calculate the tooltip's position based on mouse event and dynamic offset
-        let tooltipX = event.pageX + offsetX;
-        let tooltipY = event.pageY + offsetY;
+      // Calculate the tooltip's position based on mouse event and dynamic offset
+      let tooltipX = event.pageX + offsetX;
+      let tooltipY = event.pageY + offsetY;
 
-        // Ensure the tooltip does not overflow the container on the top or left
-        if (tooltipX < container.left) tooltipX = container.left + 15;
-        if (tooltipY < container.top) tooltipY = container.top + 15;
+      // Ensure the tooltip does not overflow the container on the top or left
+      if (tooltipX < container.left) tooltipX = container.left + 15;
+      if (tooltipY < container.top) tooltipY = container.top + 15;
 
-        // Apply the adjusted position to the tooltip
-        tooltip
-          .style("top", tooltipY + "px")
-          .style("left", tooltipX + "px");
+      // Apply the adjusted position to the tooltip
+      tooltip.style("top", tooltipY + "px").style("left", tooltipX + "px");
     })
     .on("mouseleave", function () {
       if (!isSelected && !parallelSelected) {
@@ -1639,63 +1728,74 @@ function createParallelCoordinates(data) {
             .style("stroke-opacity", 0.2);
         });
 
-        d3.select("#line-chart").selectAll(".line").each(function (d) {
-          const classes = d3.select(this).attr("class").split(" ");
-          const genre = classes[1];
-          const game = classes[2];
-          d3.select(this)
-            .style("stroke", colorScheme[getGenreByAcronym(genre)])
-            .style("opacity", 1);
-        });
+        d3.select("#line-chart")
+          .selectAll(".line")
+          .each(function (d) {
+            const classes = d3.select(this).attr("class").split(" ");
+            const genre = classes[1];
+            const game = classes[2];
+            d3.select(this)
+              .style("stroke", colorScheme[getGenreByAcronym(genre)])
+              .style("opacity", 1);
+          });
 
-        d3.select("#line-chart").selectAll(".circle").each(function (d) {
-          const classes = d3.select(this).attr("class").split(" ");
-          const genre = classes[1];
-          const game = classes[2];
-          d3.select(this)
-            .style("fill", colorScheme[getGenreByAcronym(genre)])
-            .style("opacity", 1);
-        });
+        d3.select("#line-chart")
+          .selectAll(".circle")
+          .each(function (d) {
+            const classes = d3.select(this).attr("class").split(" ");
+            const genre = classes[1];
+            const game = classes[2];
+            d3.select(this)
+              .style("fill", colorScheme[getGenreByAcronym(genre)])
+              .style("opacity", 1);
+          });
 
-
-        d3.select("#jitter-plot").selectAll(".circle").each(function (d) {
-          const classes = d3.select(this).attr("class").split(" ");
-          const genre = classes[1];
-          const game = classes[2];
-          d3.select(this)
-            .style("fill", colorScheme[getGenreByAcronym(genre)])
-            .style("stroke", "grey")
-            .style("stroke-width", 1)
-            .style("opacity", 1);
-        });
+        d3.select("#jitter-plot")
+          .selectAll(".circle")
+          .each(function (d) {
+            const classes = d3.select(this).attr("class").split(" ");
+            const genre = classes[1];
+            const game = classes[2];
+            d3.select(this)
+              .style("fill", colorScheme[getGenreByAcronym(genre)])
+              .style("stroke", "grey")
+              .style("stroke-width", 1)
+              .style("opacity", 1);
+          });
       } else {
         d3.select(this).style("stroke-width", "3").style("stroke-opacity", 0.2);
-        d3.select("#line-chart").selectAll(".line").each(function (d) {
-          const classes = d3.select(this).attr("class").split(" ");
-          const genre = classes[1];
-          const game = classes[2];
-          d3.select(this)
-            .style("stroke", colorScheme[getGenreByAcronym(genre)])
-            .style("opacity", 1);
-        });
-        d3.select("#line-chart").selectAll(".circle").each(function (d) {
-          const classes = d3.select(this).attr("class").split(" ");
-          const genre = classes[1];
-          const game = classes[2];
-          d3.select(this)
-            .style("fill", colorScheme[getGenreByAcronym(genre)])
-            .style("opacity", 1);
-        });
-        d3.select("#jitter-plot").selectAll(".circle").each(function (d) {
-          const classes = d3.select(this).attr("class").split(" ");
-          const genre = classes[1];
-          const game = classes[2];
-          d3.select(this)
-            .style("fill", colorScheme[getGenreByAcronym(genre)])
-            .style("stroke", "grey")
-            .style("stroke-width", 1)
-            .style("opacity", 1);
-        });
+        d3.select("#line-chart")
+          .selectAll(".line")
+          .each(function (d) {
+            const classes = d3.select(this).attr("class").split(" ");
+            const genre = classes[1];
+            const game = classes[2];
+            d3.select(this)
+              .style("stroke", colorScheme[getGenreByAcronym(genre)])
+              .style("opacity", 1);
+          });
+        d3.select("#line-chart")
+          .selectAll(".circle")
+          .each(function (d) {
+            const classes = d3.select(this).attr("class").split(" ");
+            const genre = classes[1];
+            const game = classes[2];
+            d3.select(this)
+              .style("fill", colorScheme[getGenreByAcronym(genre)])
+              .style("opacity", 1);
+          });
+        d3.select("#jitter-plot")
+          .selectAll(".circle")
+          .each(function (d) {
+            const classes = d3.select(this).attr("class").split(" ");
+            const genre = classes[1];
+            const game = classes[2];
+            d3.select(this)
+              .style("fill", colorScheme[getGenreByAcronym(genre)])
+              .style("stroke", "grey")
+              .style("stroke-width", 1)
+              .style("opacity", 1);
+          });
       }
       // Hide the tooltip when mouseout
       d3.select("#tooltip").style("visibility", "hidden");
@@ -1713,38 +1813,39 @@ function createParallelCoordinates(data) {
     .style("border-radius", "4px")
     .style("visibility", "hidden");
 
-  const drag = d3.drag()
-  .on("start", function (event, d) {
-    d3.select(this).style("stroke", "black").raise();
-  })
-  .on("drag", function (event, d) {
-    const mouseX = event.x;
+  const drag = d3
+    .drag()
+    .on("start", function (event, d) {
+      d3.select(this).style("stroke", "black").raise();
+    })
+    .on("drag", function (event, d) {
+      const mouseX = event.x;
 
-    // Determine the new index based on the mouse position
-    const newIndex = keys.reduce((closestIndex, key, index) => {
-      const axisPosition = x(key);
-      const distance = Math.abs(mouseX - axisPosition); // Calculate distance from mouse to axis position
-      
-      // Find the closest axis
-      return distance < Math.abs(mouseX - x(keys[closestIndex])) ? index : closestIndex;
-    }, 0); // Start with the first axis as the closest
+      // Determine the new index based on the mouse position
+      const newIndex = keys.reduce((closestIndex, key, index) => {
+        const axisPosition = x(key);
+        const distance = Math.abs(mouseX - axisPosition); // Calculate distance from mouse to axis position
 
-    // Move the dragged axis if the new index is different
-    const currentIndex = keys.indexOf(d);
-    if (newIndex !== currentIndex && newIndex !== -1) {
-      // Move the axis in the keys array
-      const draggedKey = keys.splice(currentIndex, 1)[0]; // Remove the dragged key
-      keys.splice(newIndex, 0, draggedKey); // Insert it in the new position
+        // Find the closest axis
+        return distance < Math.abs(mouseX - x(keys[closestIndex]))
+          ? index
+          : closestIndex;
+      }, 0); // Start with the first axis as the closest
 
-      x.domain(keys); // Update the scale domain with new order
-      updateAxesAndLines(); // Update axes and lines based on the new order
-    }
-  })
-  .on("end", function (event, d) {
-    d3.select(this).style("stroke", "none"); // Reset stroke color when drag ends
-  });
+      // Move the dragged axis if the new index is different
+      const currentIndex = keys.indexOf(d);
+      if (newIndex !== currentIndex && newIndex !== -1) {
+        // Move the axis in the keys array
+        const draggedKey = keys.splice(currentIndex, 1)[0]; // Remove the dragged key
+        keys.splice(newIndex, 0, draggedKey); // Insert it in the new position
 
-  
+        x.domain(keys); // Update the scale domain with new order
+        updateAxesAndLines(); // Update axes and lines based on the new order
+      }
+    })
+    .on("end", function (event, d) {
+      d3.select(this).style("stroke", "none"); // Reset stroke color when drag ends
+    });
 
   const customTicks = {
     TotalPlayers: [1, 10, 100, 1000, 10000, 100000],
@@ -1752,7 +1853,7 @@ function createParallelCoordinates(data) {
     TotalEarnings: [1, 10, 100, 1000, 10000, 100000],
     OfflineEarnings: [1, 10, 100, 1000],
     OnlineEarnings: [1, 10, 100, 1000],
-    ReleaseYear: d3.range(1985, 2025, 5)
+    ReleaseYear: d3.range(1985, 2025, 5),
   };
   // Add axis for each key
   const axes = svg
@@ -1776,8 +1877,7 @@ function createParallelCoordinates(data) {
         axis.tickValues(customTicks[d]);
       } else if (d === "TotalPlayers") {
         axis.tickValues(customTicks[d]);
-      }
-      else {
+      } else {
         axis.ticks(tickCount);
         axis.tickFormat(d3.format(".0s")); // Format as integer
       }
@@ -1815,8 +1915,7 @@ function createParallelCoordinates(data) {
       [brushWidth / 2, height - margin.bottom],
     ])
     .on("start brush end", brushed);
-  
-    
+
   axes.call(brush);
   axes.call(drag);
 
@@ -1824,10 +1923,10 @@ function createParallelCoordinates(data) {
 
   function brushed({ selection }, key) {
     if (selection === null) {
-      parallelSelected = false
+      parallelSelected = false;
       selections.delete(key); // Remove selection if no brush
     } else {
-      parallelSelected = true
+      parallelSelected = true;
       const selectedRange = selection.map(y.get(key).invert);
       selections.set(key, selectedRange); // Store the selection range for this axis
     }
@@ -1837,7 +1936,7 @@ function createParallelCoordinates(data) {
       const active = Array.from(selections).every(
         ([key, [min, max]]) => d[key] <= min && d[key] >= max
       );
-      
+
       d3.select(this).style(
         "stroke",
         active ? colorScheme[d.Genre] : deselectedColor
@@ -1852,13 +1951,15 @@ function createParallelCoordinates(data) {
 
   function updateAxesAndLines() {
     // Update axes positions
-    svg.selectAll(".axis")
+    svg
+      .selectAll(".axis")
       .transition() // Add a transition for smoother movement
       .duration(200) // Duration of the transition
       .attr("transform", (d) => `translate(${x(d)},0)`);
-  
+
     // Update line paths
-    svg.selectAll("path.line-coordinate") // Select the individual line paths directly
+    svg
+      .selectAll("path.line-coordinate") // Select the individual line paths directly
       .transition()
       .duration(200) // Duration of the transition
       .attr("d", (d) => {
@@ -1866,9 +1967,7 @@ function createParallelCoordinates(data) {
         return line(lineData);
       });
   }
-  
 }
-
 
 function updateParallelCoordinates(data) {
   const container = d3.select(".ParallelCoordinates");
@@ -1879,21 +1978,20 @@ function updateParallelCoordinates(data) {
   const margin = { top: 30, right: 10, bottom: 0, left: 50 };
   const width = svgWidth - margin.left - margin.right;
   const height = svgHeight - margin.top - margin.bottom;
-  const brushWidth  = 20;
+  const brushWidth = 20;
   const deselectedColor = "#ddd";
-
 
   // Create the tooltip div
   var tooltip = d3
-  .select("body")
-  .append("div")
-  .attr("id", "tooltip")
-  .style("position", "absolute")
-  .style("background", "#f9f9f9")
-  .style("padding", "8px")
-  .style("border", "1px solid #ccc")
-  .style("border-radius", "4px")
-  .style("visibility", "hidden");
+    .select("body")
+    .append("div")
+    .attr("id", "tooltip")
+    .style("position", "absolute")
+    .style("background", "#f9f9f9")
+    .style("padding", "8px")
+    .style("border", "1px solid #ccc")
+    .style("border-radius", "4px")
+    .style("visibility", "hidden");
 
   // Create a dictionary to hold game data
   const gameDataMap = {};
@@ -1922,7 +2020,7 @@ function updateParallelCoordinates(data) {
 
   // Convert the gameDataMap to an array
   const coordinatesData = Object.values(gameDataMap);
-  const aggregatedData = coordinatesData.map(d => ({
+  const aggregatedData = coordinatesData.map((d) => ({
     ...d,
     TotalPlayers: d.TotalPlayers > 0 ? d.TotalPlayers : 1, // Replace 0 with 1
     TotalTournaments: d.TotalTournaments > 0 ? d.TotalTournaments : 1, // Replace 0 with 1
@@ -1931,9 +2029,14 @@ function updateParallelCoordinates(data) {
     OnlineEarnings: d.OnlineEarnings > 0 ? d.OnlineEarnings : 1, // Replace 0 with 1
   }));
 
-
-  const keys = ["TotalPlayers", "TotalTournaments", "TotalEarnings", "ReleaseYear", "OfflineEarnings", "OnlineEarnings"]
-
+  const keys = [
+    "TotalPlayers",
+    "TotalTournaments",
+    "TotalEarnings",
+    "ReleaseYear",
+    "OfflineEarnings",
+    "OnlineEarnings",
+  ];
 
   const y = new Map(
     keys.map((key) => [
@@ -1947,7 +2050,7 @@ function updateParallelCoordinates(data) {
             .scaleLog() // Use log scale for other keys
             .domain(
               d3
-                .extent(aggregatedData, (d) => (d[key]))
+                .extent(aggregatedData, (d) => d[key])
                 .map((d) => (d > 0 ? d : 1))
             ) // Ensure domain starts from 1 to avoid log(0)
             .range([height - margin.bottom, margin.top]),
@@ -1962,48 +2065,50 @@ function updateParallelCoordinates(data) {
     TotalEarnings: [1, 10, 100, 1000, 10000, 100000],
     OfflineEarnings: [1, 10, 100, 1000],
     OnlineEarnings: [1, 10, 100, 1000],
-    ReleaseYear: d3.range(1985, 2025, 5)
+    ReleaseYear: d3.range(1985, 2025, 5),
   };
 
-  const drag = d3.drag()
-  .on("start", function (event, d) {
-    d3.select(this).style("stroke", "black").raise();
-  })
-  .on("drag", function (event, d) {
-    const mouseX = event.x;
+  const drag = d3
+    .drag()
+    .on("start", function (event, d) {
+      d3.select(this).style("stroke", "black").raise();
+    })
+    .on("drag", function (event, d) {
+      const mouseX = event.x;
 
-    // Determine the new index based on the mouse position
-    const newIndex = keys.reduce((closestIndex, key, index) => {
-      const axisPosition = x(key);
-      const distance = Math.abs(mouseX - axisPosition); // Calculate distance from mouse to axis position
-      
-      // Find the closest axis
-      return distance < Math.abs(mouseX - x(keys[closestIndex])) ? index : closestIndex;
-    }, 0); // Start with the first axis as the closest
+      // Determine the new index based on the mouse position
+      const newIndex = keys.reduce((closestIndex, key, index) => {
+        const axisPosition = x(key);
+        const distance = Math.abs(mouseX - axisPosition); // Calculate distance from mouse to axis position
 
-    // Move the dragged axis if the new index is different
-    const currentIndex = keys.indexOf(d);
-    if (newIndex !== currentIndex && newIndex !== -1) {
-      // Move the axis in the keys array
-      const draggedKey = keys.splice(currentIndex, 1)[0]; // Remove the dragged key
-      keys.splice(newIndex, 0, draggedKey); // Insert it in the new position
+        // Find the closest axis
+        return distance < Math.abs(mouseX - x(keys[closestIndex]))
+          ? index
+          : closestIndex;
+      }, 0); // Start with the first axis as the closest
 
-      x.domain(keys); // Update the scale domain with new order
-      updateAxesAndLines(); // Update axes and lines based on the new order
-    }
-  })
-  .on("end", function (event, d) {
-    d3.select(this).style("stroke", "none"); // Reset stroke color when drag ends
-  });
+      // Move the dragged axis if the new index is different
+      const currentIndex = keys.indexOf(d);
+      if (newIndex !== currentIndex && newIndex !== -1) {
+        // Move the axis in the keys array
+        const draggedKey = keys.splice(currentIndex, 1)[0]; // Remove the dragged key
+        keys.splice(newIndex, 0, draggedKey); // Insert it in the new position
+
+        x.domain(keys); // Update the scale domain with new order
+        updateAxesAndLines(); // Update axes and lines based on the new order
+      }
+    })
+    .on("end", function (event, d) {
+      d3.select(this).style("stroke", "none"); // Reset stroke color when drag ends
+    });
 
   // Create or update axes
   const axesGroup = container.select(".axes");
-  const axisSelection = axesGroup
-    .selectAll("g.axis")
-    .data(keys, (d) => d);
+  const axisSelection = axesGroup.selectAll("g.axis").data(keys, (d) => d);
 
   // Enter selection: add new axes
-  const enterAxes = axisSelection.enter()
+  const enterAxes = axisSelection
+    .enter()
     .append("g")
     .attr("class", "axis")
     .attr("transform", (d) => `translate(${x(d)}, 0)`)
@@ -2023,14 +2128,16 @@ function updateParallelCoordinates(data) {
         axis.tickFormat(d3.format(".0s")); // Format as integer
       }
 
-      d3.select(this).call(axis)
+      d3.select(this)
+        .call(axis)
         .selectAll("text") // Customize tick text
         .attr("fill", "currentColor")
         .attr("font-size", "10px");
     });
 
   // Update selection: update existing axes
-  const updateAxes = enterAxes.merge(axisSelection)
+  const updateAxes = enterAxes
+    .merge(axisSelection)
     .attr("transform", (d) => `translate(${x(d)}, 0)`)
     .each(function (d) {
       const axis = d3.axisLeft(y.get(d));
@@ -2047,7 +2154,8 @@ function updateParallelCoordinates(data) {
         axis.tickFormat(d3.format(".0s")); // Format as integer
       }
 
-      d3.select(this).call(axis)
+      d3.select(this)
+        .call(axis)
         .selectAll("text") // Customize tick text
         .attr("fill", "currentColor")
         .attr("font-size", "10px");
@@ -2057,32 +2165,37 @@ function updateParallelCoordinates(data) {
   axisSelection.exit().remove();
 
   const line = d3
-  .line()
-  .defined(([, value]) => value != null)
-  .y(([key, value]) => y.get(key)(value))
-  .x(([key]) => x(key));
+    .line()
+    .defined(([, value]) => value != null)
+    .y(([key, value]) => y.get(key)(value))
+    .x(([key]) => x(key));
 
   const svg = d3.select("#parallel-coordinates");
 
-  const paths = svg.select(".path-group")
+  const paths = svg
+    .select(".path-group")
     .selectAll("path.line-coordinate")
-    .data(aggregatedData, d => d.Game); // Use a key function based on Game to identify data points
+    .data(aggregatedData, (d) => d.Game); // Use a key function based on Game to identify data points
 
   // Handle the enter selection: create new path elements for new data points
-  paths.enter().append("path")
-        .attr("class", d => `line-coordinate ${acronyms[d.Genre]} ${createClassNames(d.Game)}`)
-        .attr("stroke", d => colorScheme[d.Genre])
-        .attr("d", d => {
-            const lineData = keys.map(key => [key, d[key]]);
-            return line(lineData);
-        })
-        .merge(paths) // Merge updates for existing data
-        .attr("d", d => {
-            const lineData = keys.map(key => [key, d[key]]);
-            return line(lineData);
-        })
+  paths
+    .enter()
+    .append("path")
+    .attr(
+      "class",
+      (d) => `line-coordinate ${acronyms[d.Genre]} ${createClassNames(d.Game)}`
+    )
+    .attr("stroke", (d) => colorScheme[d.Genre])
+    .attr("d", (d) => {
+      const lineData = keys.map((key) => [key, d[key]]);
+      return line(lineData);
+    })
+    .merge(paths) // Merge updates for existing data
+    .attr("d", (d) => {
+      const lineData = keys.map((key) => [key, d[key]]);
+      return line(lineData);
+    })
     .on("mouseover", function (event, d) {
-
       const formattedTotalEarnings = new Intl.NumberFormat("en-US", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
@@ -2102,29 +2215,44 @@ function updateParallelCoordinates(data) {
       const game = classes[2];
 
       if (!isSelected) {
-        d3.selectAll(".line-coordinate").style("stroke", "grey").style("stroke-opacity", "0.1")
+        d3.selectAll(".line-coordinate")
+          .style("stroke", "grey")
+          .style("stroke-opacity", "0.1");
         d3.select(this)
           .style("stroke-width", "5")
           .style("stroke", colorScheme[getGenreByAcronym(genre)])
           .style("stroke-opacity", "1")
           .style("cursor", "pointer");
 
-        d3.select("#jitter-plot").selectAll(".circle").style("fill", "grey").style("opacity", "0.2");
+        d3.select("#jitter-plot")
+          .selectAll(".circle")
+          .style("fill", "grey")
+          .style("opacity", "0.2");
         d3.selectAll(`.circle.${genre}.${game}`)
           .style("fill", colorScheme[getGenreByAcronym(genre)])
-          .style("stroke","black")
+          .style("stroke", "black")
           .style("stroke-width", 2)
           .style("opacity", "1");
 
-        d3.select("#line-chart").selectAll(".line").style("stroke", "grey").style("opacity", "0.2");
-        d3.select("#line-chart").selectAll(".circle").style("fill", "grey").style("opacity", "0.2");
-      
-        d3.select("#line-chart").selectAll(`.line.${genre}`).style("stroke", colorScheme[getGenreByAcronym(genre)]).style("opacity", "1");
-        d3.select("#line-chart").selectAll(`.circle.${genre}`).style("fill", colorScheme[getGenreByAcronym(genre)]).style("opacity", "1");
+        d3.select("#line-chart")
+          .selectAll(".line")
+          .style("stroke", "grey")
+          .style("opacity", "0.2");
+        d3.select("#line-chart")
+          .selectAll(".circle")
+          .style("fill", "grey")
+          .style("opacity", "0.2");
+
+        d3.select("#line-chart")
+          .selectAll(`.line.${genre}`)
+          .style("stroke", colorScheme[getGenreByAcronym(genre)])
+          .style("opacity", "1");
+        d3.select("#line-chart")
+          .selectAll(`.circle.${genre}`)
+          .style("fill", colorScheme[getGenreByAcronym(genre)])
+          .style("opacity", "1");
       } else {
-        d3.select(this)
-          .style("stroke-width", "5")
-          .style("cursor", "pointer");
+        d3.select(this).style("stroke-width", "5").style("cursor", "pointer");
       }
 
       // Display game details (all attributes) on hover in a tooltip or info box
@@ -2142,42 +2270,43 @@ function updateParallelCoordinates(data) {
           OfflineEarnings: ${formattedOnlineEarnings}<br/>
           OnlineEarnings: ${formattedOfflineEarnings}<br/>
         `
-        )
-        const container = d3.select(".ParallelCoordinates").node().getBoundingClientRect();
-        const tooltipNode = tooltip.node();
-        const tooltipWidth = tooltipNode.offsetWidth;
-        const tooltipHeight = tooltipNode.offsetHeight;
+        );
+      const container = d3
+        .select(".ParallelCoordinates")
+        .node()
+        .getBoundingClientRect();
+      const tooltipNode = tooltip.node();
+      const tooltipWidth = tooltipNode.offsetWidth;
+      const tooltipHeight = tooltipNode.offsetHeight;
 
-        // Get cursor position relative to the container
-        const cursorX = event.pageX - container.left;
-        const cursorY = event.pageY - container.top;
+      // Get cursor position relative to the container
+      const cursorX = event.pageX - container.left;
+      const cursorY = event.pageY - container.top;
 
-        // Dynamically calculate offsets based on cursor position
-        let offsetX = 15; // Default horizontal offset
-        let offsetY = 15; // Default vertical offset
+      // Dynamically calculate offsets based on cursor position
+      let offsetX = 15; // Default horizontal offset
+      let offsetY = 15; // Default vertical offset
 
-        // Check if cursor is near the right edge
-        if (cursorX + tooltipWidth + offsetX > container.width) {
-          offsetX = -tooltipWidth - 15; // Move to the left of the cursor
-        }
+      // Check if cursor is near the right edge
+      if (cursorX + tooltipWidth + offsetX > container.width) {
+        offsetX = -tooltipWidth - 15; // Move to the left of the cursor
+      }
 
-        // Check if cursor is near the bottom edge
-        if (cursorY + tooltipHeight + offsetY > container.height) {
-          offsetY = -tooltipHeight - 15; // Move above the cursor
-        }
+      // Check if cursor is near the bottom edge
+      if (cursorY + tooltipHeight + offsetY > container.height) {
+        offsetY = -tooltipHeight - 15; // Move above the cursor
+      }
 
-        // Calculate the tooltip's position based on mouse event and dynamic offset
-        let tooltipX = event.pageX + offsetX;
-        let tooltipY = event.pageY + offsetY;
+      // Calculate the tooltip's position based on mouse event and dynamic offset
+      let tooltipX = event.pageX + offsetX;
+      let tooltipY = event.pageY + offsetY;
 
-        // Ensure the tooltip does not overflow the container on the top or left
-        if (tooltipX < container.left) tooltipX = container.left + 15;
-        if (tooltipY < container.top) tooltipY = container.top + 15;
+      // Ensure the tooltip does not overflow the container on the top or left
+      if (tooltipX < container.left) tooltipX = container.left + 15;
+      if (tooltipY < container.top) tooltipY = container.top + 15;
 
-        // Apply the adjusted position to the tooltip
-        tooltip
-          .style("top", tooltipY + "px")
-          .style("left", tooltipX + "px");
+      // Apply the adjusted position to the tooltip
+      tooltip.style("top", tooltipY + "px").style("left", tooltipX + "px");
     })
     .on("mouseleave", function () {
       if (!isSelected) {
@@ -2191,37 +2320,42 @@ function updateParallelCoordinates(data) {
             .style("stroke-opacity", 0.2);
         });
 
-        d3.select("#line-chart").selectAll(".line").each(function (d) {
-          const classes = d3.select(this).attr("class").split(" ");
-          const genre = classes[1];
-          const game = classes[2];
-          d3.select(this)
-            .style("stroke", colorScheme[getGenreByAcronym(genre)])
-            .style("opacity", 1);
-        });
+        d3.select("#line-chart")
+          .selectAll(".line")
+          .each(function (d) {
+            const classes = d3.select(this).attr("class").split(" ");
+            const genre = classes[1];
+            const game = classes[2];
+            d3.select(this)
+              .style("stroke", colorScheme[getGenreByAcronym(genre)])
+              .style("opacity", 1);
+          });
 
-        d3.select("#line-chart").selectAll(".circle").each(function (d) {
-          const classes = d3.select(this).attr("class").split(" ");
-          const genre = classes[1];
-          const game = classes[2];
-          d3.select(this)
-            .style("fill", colorScheme[getGenreByAcronym(genre)])
-            .style("opacity", 1);
-        });
+        d3.select("#line-chart")
+          .selectAll(".circle")
+          .each(function (d) {
+            const classes = d3.select(this).attr("class").split(" ");
+            const genre = classes[1];
+            const game = classes[2];
+            d3.select(this)
+              .style("fill", colorScheme[getGenreByAcronym(genre)])
+              .style("opacity", 1);
+          });
 
-
-        d3.select("#jitter-plot").selectAll(".circle").each(function (d) {
-          const classes = d3.select(this).attr("class").split(" ");
-          const genre = classes[1];
-          const game = classes[2];
-          d3.select(this)
-            .style("fill", colorScheme[getGenreByAcronym(genre)])
-            .style("stroke", "grey")
-            .style("stroke-width", 1)
-            .style("opacity", 1);
-        });
+        d3.select("#jitter-plot")
+          .selectAll(".circle")
+          .each(function (d) {
+            const classes = d3.select(this).attr("class").split(" ");
+            const genre = classes[1];
+            const game = classes[2];
+            d3.select(this)
+              .style("fill", colorScheme[getGenreByAcronym(genre)])
+              .style("stroke", "grey")
+              .style("stroke-width", 1)
+              .style("opacity", 1);
+          });
       } else {
-        d3.select(this).style("stroke-width", "3")
+        d3.select(this).style("stroke-width", "3");
       }
       // Hide the tooltip when mouseout
       d3.select("#tooltip").style("visibility", "hidden");
@@ -2243,13 +2377,15 @@ function updateParallelCoordinates(data) {
 
   function updateAxesAndLines() {
     // Update axes positions
-    svg.selectAll(".axis")
+    svg
+      .selectAll(".axis")
       .transition() // Add a transition for smoother movement
       .duration(200) // Duration of the transition
       .attr("transform", (d) => `translate(${x(d)},0)`);
-  
+
     // Update line paths
-    svg.selectAll("path.line-coordinate") // Select the individual line paths directly
+    svg
+      .selectAll("path.line-coordinate") // Select the individual line paths directly
       .transition()
       .duration(200) // Duration of the transition
       .attr("d", (d) => {
@@ -2273,7 +2409,7 @@ function updateParallelCoordinates(data) {
       const active = Array.from(selections).every(
         ([key, [min, max]]) => d[key] <= min && d[key] >= max
       );
-      
+
       d3.select(this).style(
         "stroke",
         active ? colorScheme[d.Genre] : deselectedColor
@@ -2284,8 +2420,6 @@ function updateParallelCoordinates(data) {
       }
     });
 
-
     svg.property("value", selected).dispatch("input");
   }
-  
 }
