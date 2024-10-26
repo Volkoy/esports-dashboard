@@ -289,72 +289,84 @@ function updateLineChart(data) {
         .html(`Genre: ${d.genre}`)
         .style("left", `${event.pageX}px`)
         .style("top", `${event.pageY}px`);
-
-      const color = d3.select(this).style("stroke");
-      const genre = d3.select(this).attr("class").split(" ")[1];
-
-      if (!isSelected) {
-        d3.selectAll(".line").style("stroke", "grey").style("opacity", "0.2");
-        d3.selectAll(`.line.${genre}`)
-          .style("stroke", color)
-          .style("opacity", "1");
-        d3.selectAll(".circle").style("fill", "grey").style("opacity", "0.2");
-        d3.selectAll(`.circle.${genre}`)
-          .style("fill", color)
-          .style("opacity", "1");
-
-        d3.selectAll(".line-coordinate")
+      
+      if (isSelected || parallelSelected) {
+        d3.select(this).style("stroke-width", 5);
+      } else {
+        const classes = d3.select(this).attr("class").split(" ");
+        const genre = classes[1];
+        d3.select("#line-chart").selectAll(".line")
           .style("stroke", "grey")
-          .style("stroke-opacity", "0.1");
-        d3.selectAll(`.line-coordinate.${genre}`)
-          .style("stroke", color)
-          .style("stroke-opacity", "0.5")
-          .style("stroke-width", "5");
+          .style("opacity", 0.2);
+        d3.select("#line-chart").selectAll(".circle")
+          .style("fill", "grey")
+          .style("opacity", 0.2);
+  
+        d3.select("#jitter-plot").selectAll(".circle")
+          .style("fill", "grey")
+          .style("opacity", 0.2);
+
+        d3.select("#parallel-coordinates").selectAll(`.line-coordinate`)
+          .style("stroke", "grey")
+          .style("opacity", 0.2);
+
+        d3.select(`.line.${genre}`)
+          .style("stroke", colorScheme[getGenreByAcronym(genre)])
+          .style("opacity",1)
+          .style("stroke-width", 5)
+        d3.select("#line-chart").selectAll(`.circle.${genre}`)
+          .style("fill", colorScheme[getGenreByAcronym(genre)])
+          .style("opacity",1)
+
+        d3.select("#jitter-plot").selectAll(`.circle.${genre}`)
+          .style("fill", colorScheme[getGenreByAcronym(genre)])
+          .style("opacity", 1);
+
+        d3.select("#parallel-coordinates").selectAll(`.line-coordinate.${genre}`)
+          .style("stroke", colorScheme[getGenreByAcronym(genre)])
+          .style("opacity", 1);
+        
       }
-      d3.selectAll(`.line.${genre}`)
-        .transition()
-        .duration(200)
-        .attr("stroke-width", "5");
     })
     .on("mouseleave", function (event, d) {
       const tooltip = d3.select(".tooltip");
-      const color = d3.select(this).style("stroke");
-      const classes = d3.select(this).attr("class").split(" ");
-      const genre = classes[1];
-      if (!isSelected) {
-        d3.selectAll(".line").each(function (d) {
-          const classes = d3.select(this).attr("class").split(" ");
-          const genre = classes[1];
-          d3.select(this)
-            .transition()
-            .duration(200)
-            .attr("stroke-width", "3")
-            .style("stroke", colorScheme[getGenreByAcronym(genre)]) // Restore based on genre
-            .style("opacity", "1");
-        });
-
-        d3.selectAll(".circle").each(function (d) {
-          const classes = d3.select(this).attr("class").split(" ");
-          const genre = classes[1];
-          d3.select(this)
-            .style("fill", colorScheme[getGenreByAcronym(genre)]) // Restore based on genre
-            .style("opacity", "1");
-        });
-
-        d3.selectAll(".line-coordinate").each(function (d) {
-          const classes = d3.select(this).attr("class").split(" ");
-          const genre = classes[1];
-          d3.select(this)
-            .style("stroke", colorScheme[getGenreByAcronym(genre)]) // Restore based on genre
-            .style("stroke-opacity", "0.2")
-            .style("stroke-width", "2");
-        });
-      }
-      d3.selectAll(`.line.${genre}`)
-        .transition()
-        .duration(200)
-        .attr("stroke-width", "3");
       tooltip.transition().duration(200).style("opacity", 0);
+      if (isSelected || parallelSelected) {
+        d3.select(this).style("stroke-width", 3);
+      } else {
+        d3.select("#line-chart").selectAll(".line").each(function (d) {
+          const classes = d3.select(this).attr("class").split(" ");
+          const genre = classes[1];
+          d3.select(this)
+            .style("stroke", colorScheme[getGenreByAcronym(genre)])
+            .style("stroke-width", 3)
+            .style("opacity", 1);
+        })
+        d3.select("#line-chart").selectAll(".circle").each(function (d) {
+          const classes = d3.select(this).attr("class").split(" ");
+          const genre = classes[1];
+          d3.select(this)
+            .style("fill", colorScheme[getGenreByAcronym(genre)])
+            .style("opacity", 1);
+        })
+
+        d3.select("#jitter-plot").selectAll(".circle").each(function (d) {
+          const classes = d3.select(this).attr("class").split(" ");
+          const genre = classes[1];
+          d3.select(this)
+            .style("fill", colorScheme[getGenreByAcronym(genre)])
+            .style("opacity", 1);
+        })
+
+        d3.select("#parallel-coordinates").selectAll(`.line-coordinate`).each(function (d) {
+          const classes = d3.select(this).attr("class").split(" ");
+          const genre = classes[1];
+          d3.select(this)
+            .style("stroke", colorScheme[getGenreByAcronym(genre)])
+            .style("opacity", 1);
+        })
+
+      }
     });
 
   // Update selection: Update existing lines
@@ -402,59 +414,83 @@ function updateLineChart(data) {
       const color = d3.select(this).style("fill");
       const classes = d3.select(this).attr("class").split(" ");
       const genre = classes[1];
-      if (!isSelected) {
-        d3.selectAll(".line").style("stroke", "grey").style("opacity", "0.2");
-        d3.selectAll(`.line.${genre}`)
-          .style("stroke", color)
-          .style("opacity", "1");
-        d3.selectAll(".circle").style("fill", "grey").style("opacity", "0.2");
-        d3.selectAll(`.circle.${genre}`)
-          .style("fill", color)
-          .style("opacity", "1");
 
-        d3.selectAll(".line-coordinate")
+      if (isSelected || parallelSelected) {
+        d3.select(this).attr("r", 8);
+      } else {
+        d3.select(this).attr("r", 8);
+        const classes = d3.select(this).attr("class").split(" ");
+        const genre = classes[1];
+        d3.select("#line-chart").selectAll(".line")
           .style("stroke", "grey")
-          .style("stroke-opacity", "0.1");
-        d3.selectAll(`.line-coordinate.${genre}`)
-          .style("stroke", color)
-          .style("stroke-opacity", "0.5")
-          .style("stroke-width", "5");
+          .style("opacity", 0.2);
+        d3.select("#line-chart").selectAll(".circle")
+          .style("fill", "grey")
+          .style("opacity", 0.2);
+
+        d3.select("#jitter-plot").selectAll(".circle")
+          .style("fill", "grey")
+          .style("opacity", 0.2);
+
+        d3.select("#parallel-coordinates").selectAll(`.line-coordinate`)
+          .style("stroke", "grey")
+          .style("opacity", 0.2);
+
+        d3.select(`.line.${genre}`)
+          .style("stroke", colorScheme[getGenreByAcronym(genre)])
+          .style("opacity",1)
+          .style("stroke-width", 5)
+        d3.select("#line-chart").selectAll(`.circle.${genre}`)
+          .style("fill", colorScheme[getGenreByAcronym(genre)])
+          .style("opacity",1)
+
+        d3.select("#jitter-plot").selectAll(`.circle.${genre}`)
+          .style("fill", colorScheme[getGenreByAcronym(genre)])
+          .style("opacity", 1);
+
+        d3.select("#parallel-coordinates").selectAll(`.line-coordinate.${genre}`)
+          .style("stroke", colorScheme[getGenreByAcronym(genre)])
+          .style("opacity", 1);
       }
-      d3.select(this).transition().duration(200).attr("r", "8");
     })
     .on("mouseleave", function (event, d) {
       const tooltip = d3.select(".tooltip");
       tooltip.transition().duration(200).style("opacity", 0);
-      if (!isSelected) {
-        d3.selectAll(".line").each(function (d) {
+      if (isSelected || parallelSelected) {
+        d3.select(this).attr("r", 5);
+      } else {
+        d3.select(this).attr("r", 5);
+        d3.select("#line-chart").selectAll(".line").each(function (d) {
           const classes = d3.select(this).attr("class").split(" ");
           const genre = classes[1];
           d3.select(this)
-            .style("stroke", colorScheme[getGenreByAcronym(genre)]) // Restore based on genre
-            .style("opacity", "1");
-        });
+            .style("stroke", colorScheme[getGenreByAcronym(genre)])
+            .style("stroke-width", 3)
+            .style("opacity", 1);
+        })
+        d3.select("#line-chart").selectAll(".circle").each(function (d) {
+          const classes = d3.select(this).attr("class").split(" ");
+          const genre = classes[1];
+          d3.select(this)
+            .style("fill", colorScheme[getGenreByAcronym(genre)])
+            .style("opacity", 1);
+        })
+        d3.select("#jitter-plot").selectAll(".circle").each(function (d) {
+          const classes = d3.select(this).attr("class").split(" ");
+          const genre = classes[1];
+          d3.select(this)
+            .style("fill", colorScheme[getGenreByAcronym(genre)])
+            .style("opacity", 1);
+        })
 
-        d3.selectAll(".circle").each(function (d) {
+        d3.select("#parallel-coordinates").selectAll(`.line-coordinate`).each(function (d) {
           const classes = d3.select(this).attr("class").split(" ");
           const genre = classes[1];
           d3.select(this)
-            .transition()
-            .duration(200)
-            .attr("r", "5")
-            .style("fill", colorScheme[getGenreByAcronym(genre)]) // Restore based on genre
-            .style("opacity", "1");
-        });
-
-        d3.selectAll(".line-coordinate").each(function (d) {
-          const classes = d3.select(this).attr("class").split(" ");
-          const genre = classes[1];
-          d3.select(this)
-            .style("stroke", colorScheme[getGenreByAcronym(genre)]) // Restore based on genre
-            .style("stroke-opacity", "0.2")
-            .style("stroke-width", "2");
-        });
+            .style("stroke", colorScheme[getGenreByAcronym(genre)])
+            .style("opacity", 1);
+        })
       }
-      d3.select(this).transition().duration(200).attr("r", "5");
     });
 
   // Update selection: Update existing circles
@@ -494,6 +530,7 @@ function updateLineChart(data) {
       .duration(500)
       .call(d3.axisLeft(yScale).tickFormat(d3.format(".2s")));
   }
+  d3.selectAll(".grey-out").raise();
 }
 
 function createLineChart(data) {
@@ -681,69 +718,81 @@ function createLineChart(data) {
           .style("left", `${event.pageX}px`)
           .style("top", `${event.pageY}px`);
 
-        const color = d3.select(this).style("stroke");
-        const classes = d3.select(this).attr("class").split(" ");
-        const genre = classes[1];
-        if (!isSelected) {
-          d3.selectAll(".line").style("stroke", "grey").style("opacity", "0.2");
-          d3.selectAll(`.line.${genre}`)
-            .style("stroke", color)
-            .style("opacity", "1");
-          d3.selectAll(".circle").style("fill", "grey").style("opacity", "0.2");
-          d3.selectAll(`.circle.${genre}`)
-            .style("fill", color)
-            .style("opacity", "1");
-
-          d3.selectAll(".line-coordinate")
+        if (isSelected || parallelSelected) {
+          d3.select(this).style("stroke-width", 5);
+        } else {
+          const classes = d3.select(this).attr("class").split(" ");
+          const genre = classes[1];
+          d3.select("#line-chart").selectAll(".line")
             .style("stroke", "grey")
-            .style("stroke-opacity", "0.1");
-          d3.selectAll(`.line-coordinate.${genre}`)
-            .style("stroke", color)
-            .style("stroke-opacity", "0.5")
-            .style("stroke-width", "5");
+            .style("opacity", 0.2);
+          d3.select("#line-chart").selectAll(".circle")
+            .style("fill", "grey")
+            .style("opacity", 0.2);
+    
+          d3.select("#jitter-plot").selectAll(".circle")
+            .style("fill", "grey")
+            .style("opacity", 0.2);
+
+          d3.select("#parallel-coordinates").selectAll(`.line-coordinate`)
+            .style("stroke", "grey")
+            .style("opacity", 0.2);
+
+          d3.select(`.line.${genre}`)
+            .style("stroke", colorScheme[getGenreByAcronym(genre)])
+            .style("opacity",1)
+            .style("stroke-width", 5)
+          d3.select("#line-chart").selectAll(`.circle.${genre}`)
+            .style("fill", colorScheme[getGenreByAcronym(genre)])
+            .style("opacity",1)
+
+          d3.select("#jitter-plot").selectAll(`.circle.${genre}`)
+            .style("fill", colorScheme[getGenreByAcronym(genre)])
+            .style("opacity", 1);
+
+          d3.select("#parallel-coordinates").selectAll(`.line-coordinate.${genre}`)
+            .style("stroke", colorScheme[getGenreByAcronym(genre)])
+            .style("opacity", 1);
+          
         }
-        d3.selectAll(`.line.${genre}`)
-          .transition()
-          .duration(200)
-          .attr("stroke-width", "5");
       })
       .on("mouseleave", function (event, d) {
-        const color = d3.select(this).style("stroke");
-        const classes = d3.select(this).attr("class").split(" ");
-        const genre = classes[1];
-        if (!isSelected) {
-          d3.selectAll(".line").each(function (d) {
+        if (isSelected || parallelSelected) {
+          d3.select(this).style("stroke-width", 3);
+        } else {
+          d3.select("#line-chart").selectAll(".line").each(function (d) {
             const classes = d3.select(this).attr("class").split(" ");
             const genre = classes[1];
             d3.select(this)
-              .transition()
-              .duration(200)
-              .attr("stroke-width", "3")
-              .style("stroke", colorScheme[getGenreByAcronym(genre)]) // Restore based on genre
-              .style("opacity", "1");
-          });
+              .style("stroke", colorScheme[getGenreByAcronym(genre)])
+              .style("stroke-width", 3)
+              .style("opacity", 1);
+          })
+          d3.select("#line-chart").selectAll(".circle").each(function (d) {
+            const classes = d3.select(this).attr("class").split(" ");
+            const genre = classes[1];
+            d3.select(this)
+              .style("fill", colorScheme[getGenreByAcronym(genre)])
+              .style("opacity", 1);
+          })
 
-          d3.selectAll(".circle").each(function (d) {
+          d3.select("#jitter-plot").selectAll(".circle").each(function (d) {
             const classes = d3.select(this).attr("class").split(" ");
             const genre = classes[1];
             d3.select(this)
-              .style("fill", colorScheme[getGenreByAcronym(genre)]) // Restore based on genre
-              .style("opacity", "1");
-          });
+              .style("fill", colorScheme[getGenreByAcronym(genre)])
+              .style("opacity", 1);
+          })
 
-          d3.selectAll(".line-coordinate").each(function (d) {
+          d3.select("#parallel-coordinates").selectAll(`.line-coordinate`).each(function (d) {
             const classes = d3.select(this).attr("class").split(" ");
             const genre = classes[1];
             d3.select(this)
-              .style("stroke", colorScheme[getGenreByAcronym(genre)]) // Restore based on genre
-              .style("stroke-opacity", "0.2")
-              .style("stroke-width", "2");
-          });
+              .style("stroke", colorScheme[getGenreByAcronym(genre)])
+              .style("opacity", 1);
+          })
+
         }
-        d3.selectAll(`.line.${genre}`)
-          .transition()
-          .duration(200)
-          .attr("stroke-width", "3");
         tooltip.transition().duration(200).style("opacity", 0);
       });
 
@@ -770,58 +819,81 @@ function createLineChart(data) {
         const color = d3.select(this).style("fill");
         const classes = d3.select(this).attr("class").split(" ");
         const genre = classes[1];
-        if (!isSelected) {
-          d3.selectAll(".line").style("stroke", "grey").style("opacity", "0.2");
-          d3.selectAll(`.line.${genre}`)
-            .style("stroke", color)
-            .style("opacity", "1");
 
-          d3.selectAll(".circle").style("fill", "grey").style("opacity", "0.2");
-          d3.selectAll(`.circle.${genre}`)
-            .style("fill", color)
-            .style("opacity", "1");
-
-          d3.selectAll(".line-coordinate")
+        if (isSelected || parallelSelected) {
+          d3.select(this).attr("r", 8);
+        } else {
+          d3.select(this).attr("r", 8);
+          const classes = d3.select(this).attr("class").split(" ");
+          const genre = classes[1];
+          d3.select("#line-chart").selectAll(".line")
             .style("stroke", "grey")
-            .style("stroke-opacity", "0.1");
-          d3.selectAll(`.line-coordinate.${genre}`)
-            .style("stroke", color)
-            .style("stroke-opacity", "0.5")
-            .style("stroke-width", "5");
+            .style("opacity", 0.2);
+          d3.select("#line-chart").selectAll(".circle")
+            .style("fill", "grey")
+            .style("opacity", 0.2);
+
+          d3.select("#jitter-plot").selectAll(".circle")
+            .style("fill", "grey")
+            .style("opacity", 0.2);
+
+          d3.select("#parallel-coordinates").selectAll(`.line-coordinate`)
+            .style("stroke", "grey")
+            .style("opacity", 0.2);
+
+          d3.select(`.line.${genre}`)
+            .style("stroke", colorScheme[getGenreByAcronym(genre)])
+            .style("opacity",1)
+            .style("stroke-width", 5)
+          d3.select("#line-chart").selectAll(`.circle.${genre}`)
+            .style("fill", colorScheme[getGenreByAcronym(genre)])
+            .style("opacity",1)
+
+          d3.select("#jitter-plot").selectAll(`.circle.${genre}`)
+            .style("fill", colorScheme[getGenreByAcronym(genre)])
+            .style("opacity", 1);
+
+          d3.select("#parallel-coordinates").selectAll(`.line-coordinate.${genre}`)
+            .style("stroke", colorScheme[getGenreByAcronym(genre)])
+            .style("opacity", 1);
         }
-        d3.select(this).transition().duration(200).attr("r", "8");
       })
       .on("mouseleave", function (event, d) {
-        if (!isSelected) {
-          d3.selectAll(".line").each(function (d) {
+        if (isSelected || parallelSelected) {
+          d3.select(this).attr("r", 5);
+        } else {
+          d3.select(this).attr("r", 5);
+          d3.select("#line-chart").selectAll(".line").each(function (d) {
             const classes = d3.select(this).attr("class").split(" ");
             const genre = classes[1];
             d3.select(this)
-              .style("stroke", colorScheme[getGenreByAcronym(genre)]) // Restore based on genre
-              .style("opacity", "1");
-          });
+              .style("stroke", colorScheme[getGenreByAcronym(genre)])
+              .style("stroke-width", 3)
+              .style("opacity", 1);
+          })
+          d3.select("#line-chart").selectAll(".circle").each(function (d) {
+            const classes = d3.select(this).attr("class").split(" ");
+            const genre = classes[1];
+            d3.select(this)
+              .style("fill", colorScheme[getGenreByAcronym(genre)])
+              .style("opacity", 1);
+          })
+          d3.select("#jitter-plot").selectAll(".circle").each(function (d) {
+            const classes = d3.select(this).attr("class").split(" ");
+            const genre = classes[1];
+            d3.select(this)
+              .style("fill", colorScheme[getGenreByAcronym(genre)])
+              .style("opacity", 1);
+          })
 
-          d3.selectAll(".circle").each(function (d) {
+          d3.select("#parallel-coordinates").selectAll(`.line-coordinate`).each(function (d) {
             const classes = d3.select(this).attr("class").split(" ");
             const genre = classes[1];
             d3.select(this)
-              .transition()
-              .duration(200)
-              .attr("r", "5")
-              .style("fill", colorScheme[getGenreByAcronym(genre)]) // Restore based on genre
-              .style("opacity", "1");
-          });
-
-          d3.selectAll(".line-coordinate").each(function (d) {
-            const classes = d3.select(this).attr("class").split(" ");
-            const genre = classes[1];
-            d3.select(this)
-              .style("stroke", colorScheme[getGenreByAcronym(genre)]) // Restore based on genre
-              .style("stroke-opacity", "0.2")
-              .style("stroke-width", "2");
-          });
+              .style("stroke", colorScheme[getGenreByAcronym(genre)])
+              .style("opacity", 1);
+          })
         }
-        d3.select(this).transition().duration(200).attr("r", "5");
         tooltip.transition().duration(200).style("opacity", 0);
         tooltip.transition().duration(500).style("opacity", 0);
       });
@@ -853,7 +925,7 @@ function createLineChart(data) {
     .attr("text-anchor", "middle")
     .attr("transform", "rotate(-90)")
     .text("Earnings");
-
+    
   // Create left and right overlay rectangles for greying out
   const greyLeft = svg
     .append("rect")
@@ -864,7 +936,8 @@ function createLineChart(data) {
     .attr("height", svgHeight - margin)
     .attr("width", 0) // Start with no width
     .attr("fill", "grey")
-    .attr("opacity", 0.7);
+    .attr("opacity", 0.7)
+    .attr("filter", "url(#desaturate-filter)");
 
   const greyRight = svg
     .append("rect")
@@ -1043,35 +1116,39 @@ function createJitterPlot(data) {
       const classes = d3.select(this).attr("class").split(" ");
       const genre = classes[1];
       const game = classes[2];
-      if (!isSelected) {
-        d3.selectAll(".line").style("stroke", "grey").style("opacity", "0.2");
+      if (isSelected || parallelSelected) {
+        d3.select(this).attr("r", 8);
+      } else {
+        const classes = d3.select(this).attr("class").split(" ");
+        const genre = classes[1];
+        d3.select(this).attr("r", 8);
+        d3.select("#jitter-plot").selectAll(".circle").style("opacity", 0.2).style("fill", "grey");
+        d3.select("#jitter-plot").selectAll(`.circle.${genre}`).style("opacity", 0.2).style("fill", colorScheme[getGenreByAcronym(genre)]);
+        d3.select(this).style("opacity", 1);
 
-        d3.selectAll(".line-coordinate")
+        d3.select("#line-chart").selectAll(".line")
           .style("stroke", "grey")
-          .style("stroke-opacity", "0.1");
-        d3.selectAll(`.line-coordinate.${genre}`)
-          .style("stroke", color)
-          .style("stroke-opacity", "0.2")
-          .style("stroke-width", "5");
-        d3.selectAll(`.line-coordinate.${genre}.${game}`)
-          .style("stroke", color)
-          .style("stroke-opacity", "1")
-          .style("stroke-width", "5");
+          .style("opacity", 0.2);
+        d3.select("#line-chart").selectAll(".circle")
+          .style("fill", "grey")
+          .style("opacity", 0.2);
 
-        d3.selectAll(`.line.${genre}`)
-          .style("stroke", color)
-          .style("opacity", "1");
-        d3.selectAll(".circle").style("fill", "grey").style("opacity", "0.2");
-        d3.selectAll(`.circle.${genre}`)
-          .style("fill", color)
-          .style("opacity", "1");
+        d3.select("#parallel-coordinates").selectAll(`.line-coordinate`)
+          .style("stroke", "grey")
+          .style("opacity", 0.2);
+
+        d3.select(`.line.${genre}`)
+          .style("stroke", colorScheme[getGenreByAcronym(genre)])
+          .style("opacity",1)
+        d3.select("#line-chart").selectAll(`.circle.${genre}`)
+          .style("fill", colorScheme[getGenreByAcronym(genre)])
+          .style("opacity",1);
+
+        d3.select("#parallel-coordinates").selectAll(`.line-coordinate.${genre}`)
+          .style("stroke", colorScheme[getGenreByAcronym(genre)])
+          .style("opacity", 1);
+        
       }
-      d3.select(`.${game}`)
-        .transition()
-        .duration(200)
-        .attr("r", 8)
-        .style("stroke", "black")
-        .style("stroke-width", "2");
 
       tooltip.transition().duration(200).style("opacity", 0.9);
       tooltip
@@ -1082,37 +1159,38 @@ function createJitterPlot(data) {
     })
     .on("mouseleave", function (event, d) {
       const game = createClassNames(d.Game);
-      d3.select(`.${game}`)
-        .transition()
-        .duration(200)
-        .attr("r", 5)
-        .style("stroke", "#777")
-        .style("stroke-width", 1);
-      if (!isSelected) {
-        d3.selectAll(".line").each(function (d) {
+      if (isSelected || parallelSelected) {
+        d3.select(this).attr("r", 5);
+      } else {
+        d3.select("#jitter-plot").selectAll(".circle").each(function (d) {
           const classes = d3.select(this).attr("class").split(" ");
           const genre = classes[1];
           d3.select(this)
-            .style("stroke", colorScheme[getGenreByAcronym(genre)]) // Restore based on genre
-            .style("opacity", "1");
+            .style("fill", colorScheme[getGenreByAcronym(genre)])
+            .attr("r", 5)
+            .style("opacity", 1);
         });
-
-        d3.selectAll(".line-coordinate").each(function (d) {
+        d3.select("#line-chart").selectAll(".line").each(function (d) {
           const classes = d3.select(this).attr("class").split(" ");
           const genre = classes[1];
           d3.select(this)
-            .style("stroke", colorScheme[getGenreByAcronym(genre)]) // Restore based on genre
-            .style("stroke-opacity", "0.2")
-            .style("stroke-width", "2");
-        });
-
-        d3.selectAll(".circle").each(function (d) {
+            .style("stroke", colorScheme[getGenreByAcronym(genre)])
+            .style("opacity", 1);
+        })
+        d3.select("#line-chart").selectAll(".circle").each(function (d) {
           const classes = d3.select(this).attr("class").split(" ");
           const genre = classes[1];
           d3.select(this)
-            .style("fill", colorScheme[getGenreByAcronym(genre)]) // Restore based on genre
-            .style("opacity", "1");
+            .style("fill", colorScheme[getGenreByAcronym(genre)])
+            .style("opacity", 1);
         });
+        d3.select("#parallel-coordinates").selectAll(`.line-coordinate`).each(function (d) {
+          const classes = d3.select(this).attr("class").split(" ");
+          const genre = classes[1];
+          d3.select(this)
+            .style("stroke", colorScheme[getGenreByAcronym(genre)])
+            .style("opacity", 1);
+        })
       }
 
       tooltip.transition().duration(500).style("opacity", 0);
@@ -1158,7 +1236,7 @@ function createJitterPlot(data) {
       });
 
       selectGames.forEach((game) => {
-        d3.select(`.line-coordinate.${game[0]}.${game[1]}`)
+        d3.select(`.line-coordinate.${game[0]}`)
           .style("stroke", colorScheme[getGenreByAcronym(game[0])])
           .style("stroke-opacity", "1")
           .style("stroke-width", "3");
@@ -1352,32 +1430,39 @@ function updateJitterPlot(data) {
       const classes = d3.select(this).attr("class").split(" ");
       const genre = classes[1];
       const game = classes[2];
-      if (!isSelected) {
-        d3.selectAll(".line").style("stroke", "grey").style("opacity", "0.2");
-        d3.selectAll(".line-coordinate")
+      if (isSelected || parallelSelected) {
+        d3.select(this).attr("r", 8);
+      } else {
+        const classes = d3.select(this).attr("class").split(" ");
+        const genre = classes[1];
+        d3.select(this).attr("r", 8);
+        d3.select("#jitter-plot").selectAll(".circle").style("opacity", 0.2).style("fill", "grey");
+        d3.select("#jitter-plot").selectAll(`.circle.${genre}`).style("opacity", 0.2).style("fill", colorScheme[getGenreByAcronym(genre)]);
+        d3.select(this).style("opacity", 1);
+
+        d3.select("#line-chart").selectAll(".line")
           .style("stroke", "grey")
-          .style("stroke-opacity", "0.1");
-        d3.selectAll(`.line-coordinate.${genre}`)
-          .style("stroke", color)
-          .style("stroke-opacity", "0.5");
-        d3.selectAll(`.line-coordinate.${genre}.${game}`)
-          .style("stroke", color)
-          .style("stroke-opacity", "1")
-          .style("stroke-width", "5");
-        d3.selectAll(`.line.${genre}`)
-          .style("stroke", color)
-          .style("opacity", "1");
-        d3.selectAll(".circle").style("fill", "grey").style("opacity", "0.2");
-        d3.selectAll(`.circle.${genre}`)
-          .style("fill", color)
-          .style("opacity", "1");
+          .style("opacity", 0.2);
+        d3.select("#line-chart").selectAll(".circle")
+          .style("fill", "grey")
+          .style("opacity", 0.2);
+
+        d3.select("#parallel-coordinates").selectAll(`.line-coordinate`)
+          .style("stroke", "grey")
+          .style("opacity", 0.2);
+
+        d3.select(`.line.${genre}`)
+          .style("stroke", colorScheme[getGenreByAcronym(genre)])
+          .style("opacity",1)
+        d3.select("#line-chart").selectAll(`.circle.${genre}`)
+          .style("fill", colorScheme[getGenreByAcronym(genre)])
+          .style("opacity",1);
+
+        d3.select("#parallel-coordinates").selectAll(`.line-coordinate.${genre}`)
+          .style("stroke", colorScheme[getGenreByAcronym(genre)])
+          .style("opacity", 1);
+        
       }
-      d3.select(`.${game}`)
-        .transition()
-        .duration(200)
-        .attr("r", 8)
-        .style("stroke", "black")
-        .style("stroke-width", "2");
 
       tooltip.transition().duration(200).style("opacity", 0.9);
       tooltip
@@ -1389,37 +1474,38 @@ function updateJitterPlot(data) {
     .on("mouseleave", function (event, d) {
       const tooltip = d3.select(".tooltip");
       const game = createClassNames(d.Game);
-      d3.select(`.${game}`)
-        .transition()
-        .duration(200)
-        .attr("r", 5)
-        .style("stroke", "#777")
-        .style("stroke-width", 1);
-      if (!isSelected) {
-        d3.selectAll(".line").each(function (d) {
+      if (isSelected || parallelSelected) {
+        d3.select(this).attr("r", 5);
+      } else {
+        d3.select("#jitter-plot").selectAll(".circle").each(function (d) {
           const classes = d3.select(this).attr("class").split(" ");
           const genre = classes[1];
           d3.select(this)
-            .style("stroke", colorScheme[getGenreByAcronym(genre)]) // Restore based on genre
-            .style("opacity", "1");
+            .style("fill", colorScheme[getGenreByAcronym(genre)])
+            .attr("r", 5)
+            .style("opacity", 1);
         });
-
-        d3.selectAll(".line-coordinate").each(function (d) {
+        d3.select("#line-chart").selectAll(".line").each(function (d) {
           const classes = d3.select(this).attr("class").split(" ");
           const genre = classes[1];
           d3.select(this)
-            .style("stroke", colorScheme[getGenreByAcronym(genre)]) // Restore based on genre
-            .style("stroke-opacity", "0.2")
-            .style("stroke-width", "2");
-        });
-
-        d3.selectAll(".circle").each(function (d) {
+            .style("stroke", colorScheme[getGenreByAcronym(genre)])
+            .style("opacity", 1);
+        })
+        d3.select("#line-chart").selectAll(".circle").each(function (d) {
           const classes = d3.select(this).attr("class").split(" ");
           const genre = classes[1];
           d3.select(this)
-            .style("fill", colorScheme[getGenreByAcronym(genre)]) // Restore based on genre
-            .style("opacity", "1");
+            .style("fill", colorScheme[getGenreByAcronym(genre)])
+            .style("opacity", 1);
         });
+        d3.select("#parallel-coordinates").selectAll(`.line-coordinate`).each(function (d) {
+          const classes = d3.select(this).attr("class").split(" ");
+          const genre = classes[1];
+          d3.select(this)
+            .style("stroke", colorScheme[getGenreByAcronym(genre)])
+            .style("opacity", 1);
+        })
       }
 
       tooltip.transition().duration(500).style("opacity", 0);
@@ -1474,66 +1560,72 @@ function createParallelCoordinates(data) {
   const deselectedColor = "#ddd";
 
   // Create a dictionary to hold game data
-  const gameDataMap = {};
+  const genreDataMap = {};
 
   // Iterate over the data to aggregate values
   data.forEach((d) => {
     const game = d.Game;
     const genre = d.Genre;
 
-    if (!gameDataMap[game]) {
-      gameDataMap[game] = {
-        Game: game,
+    if (!genreDataMap[genre]) {
+      genreDataMap[genre] = {
         Genre: genre, // Store genre
         TotalPlayers: 0,
         TotalTournaments: 0,
         TotalEarnings: 0,
-        ReleaseYear: d.ReleaseYear, // Set the initial release date
+        TotalReleaseYears: 0, // Sum of release years for averaging
+        Count: 0, // Count of entries to calculate average
         OfflineEarnings: d.OfflineEarnings,
         OnlineEarnings: d.OnlineEarnings,
       };
     }
-    gameDataMap[game].TotalTournaments += d.Tournaments;
-    gameDataMap[game].TotalPlayers += d.Players;
-    gameDataMap[game].TotalEarnings += d.Earnings;
+    genreDataMap[genre].TotalTournaments += d.Tournaments;
+    genreDataMap[genre].TotalPlayers += d.Players;
+    genreDataMap[genre].TotalEarnings += d.Earnings;
+    genreDataMap[genre].OfflineEarnings += d.OfflineEarnings;
+    genreDataMap[genre].OnlineEarnings += d.OnlineEarnings;
+
+    // Accumulate total release years for averaging
+    genreDataMap[genre].TotalReleaseYears += d.ReleaseYear;
+    genreDataMap[genre].Count += 1; // Increment count for each entry
   });
 
   // Convert the gameDataMap to an array
-  const coordinatesData = Object.values(gameDataMap);
-  const aggregatedData = coordinatesData.map((d) => ({
-    ...d,
-    TotalPlayers: d.TotalPlayers > 0 ? d.TotalPlayers : 1, // Replace 0 with 1
-    TotalTournaments: d.TotalTournaments > 0 ? d.TotalTournaments : 1, // Replace 0 with 1
-    TotalEarnings: d.TotalEarnings > 0 ? d.TotalEarnings : 1, // Replace 0 with 1
-    OfflineEarnings: d.OfflineEarnings > 0 ? d.OfflineEarnings : 1, // Replace 0 with 1
-    OnlineEarnings: d.OnlineEarnings > 0 ? d.OnlineEarnings : 1, // Replace 0 with 1
-  }));
+  // Convert the genreDataMap to an array
+  const coordinatesData = Object.values(genreDataMap);
+  const aggregatedData = coordinatesData.map((d) => {
+    const averagePlayers = d.Count > 0 ? d.TotalPlayers / d.Count : 0;
+    const averageTournaments = d.Count > 0 ? d.TotalTournaments / d.Count : 0;
+    const averageEarnings = d.Count > 0 ? d.TotalEarnings / d.Count : 0;
+    const averageOfflineEarnings = d.Count > 0 ? d.OfflineEarnings / d.Count : 0;
+    const averageOnlineEarnings = d.Count > 0 ? d.OnlineEarnings / d.Count : 0;
+
+    return {
+      Genre: d.Genre,
+      AveragePlayers: Math.floor(averagePlayers), // Round down to the nearest integer
+      AverageTournaments: Math.floor(averageTournaments), // Round down to the nearest integer
+      AverageEarnings: Math.floor(averageEarnings), // Round down to the nearest integer
+      AverageOfflineEarnings: Math.floor(averageOfflineEarnings), // Round down to the nearest integer
+      AverageOnlineEarnings: Math.floor(averageOnlineEarnings), // Round down to the nearest integer
+      AverageReleaseYear: d.Count > 0 ? Math.round(d.TotalReleaseYears / d.Count) : 0, // Calculate average release year and round to nearest integer
+    };
+  });
 
   const keys = [
-    "TotalPlayers",
-    "TotalTournaments",
-    "TotalEarnings",
-    "ReleaseYear",
-    "OfflineEarnings",
-    "OnlineEarnings",
+    "AveragePlayers",
+    "AverageTournaments",
+    "AverageEarnings",
+    "AverageReleaseYear",
+    "AverageOfflineEarnings",
+    "AverageOnlineEarnings",
   ];
 
   const y = new Map(
     keys.map((key) => [
-      key,
-      key === "ReleaseYear"
-        ? d3
+      key, d3
             .scaleLinear() // Use time scale for ReleaseDate
             .domain(d3.extent(aggregatedData, (d) => d[key])) // Set domain using the extent of ReleaseDate
             .range([height - margin.bottom, margin.top])
-        : d3
-            .scaleLog() // Use log scale for other keys
-            .domain(
-              d3
-                .extent(aggregatedData, (d) => d[key])
-                .map((d) => (d > 0 ? d : 1))
-            ) // Ensure domain starts from 1 to avoid log(0)
-            .range([height - margin.bottom, margin.top]),
     ])
   );
 
@@ -1558,14 +1650,15 @@ function createParallelCoordinates(data) {
     .append("g")
     .attr("class", "path-group")
     .attr("fill", "none")
-    .attr("stroke-width", 2)
-    .attr("stroke-opacity", 0.2)
+    .attr("stroke-width", 3)
+    .attr("opacity", 1)
+    .style("cursor", "pointer")
     .selectAll("path")
     .data(aggregatedData)
     .join("path")
     .attr(
       "class",
-      (d) => `line-coordinate ${acronyms[d.Genre]} ${createClassNames(d.Game)}`
+      (d) => `line-coordinate ${acronyms[d.Genre]}`
     )
     .attr("stroke", (d) => colorScheme[d.Genre])
     .attr("d", (d) => {
@@ -1573,94 +1666,59 @@ function createParallelCoordinates(data) {
       return line(lineData); // Ensure proper mapping
     })
     .on("mouseover", function (event, d) {
-      const formattedTotalEarnings = new Intl.NumberFormat("en-US", {
+      const formattedAverageEarnings= new Intl.NumberFormat("en-US", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
-      }).format(d.TotalEarnings);
-      const formattedOnlineEarnings = new Intl.NumberFormat("en-US", {
+      }).format(d.AverageEarnings);
+      const formattedAverageOnlineEarnings = new Intl.NumberFormat("en-US", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
-      }).format(d.OnlineEarnings);
-      const formattedOfflineEarnings = new Intl.NumberFormat("en-US", {
+      }).format(d.AverageOnlineEarnings);
+      const formattedAverageOfflineEarnings = new Intl.NumberFormat("en-US", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
-      }).format(d.OfflineEarnings);
+      }).format(d.AverageOfflineEarnings);
 
       tooltip.transition().duration(200).style("opacity", 1);
       const classes = d3.select(this).attr("class").split(" ");
       const genre = classes[1];
       const game = classes[2];
 
-      if (!isSelected && !parallelSelected) {
-        d3.selectAll(".line-coordinate")
-          .style("stroke", "grey")
-          .style("stroke-opacity", "0.1");
-        d3.select(this)
-          .style("stroke-width", "5")
-          .style("stroke", colorScheme[getGenreByAcronym(genre)])
-          .style("stroke-opacity", "1")
-          .style("cursor", "pointer");
-
-        d3.select("#jitter-plot")
-          .selectAll(".circle")
-          .style("fill", "grey")
-          .style("opacity", "0.2");
-        d3.selectAll(`.circle.${genre}.${game}`)
-          .style("fill", colorScheme[getGenreByAcronym(genre)])
-          .style("stroke", "black")
-          .style("stroke-width", 2)
-          .style("opacity", "1");
-
-        d3.select("#line-chart")
-          .selectAll(".line")
-          .style("stroke", "grey")
-          .style("opacity", "0.2");
-        d3.select("#line-chart")
-          .selectAll(".circle")
-          .style("fill", "grey")
-          .style("opacity", "0.2");
-
-        d3.select("#line-chart")
-          .selectAll(`.line.${genre}`)
-          .style("stroke", colorScheme[getGenreByAcronym(genre)])
-          .style("opacity", "1");
-        d3.select("#line-chart")
-          .selectAll(`.circle.${genre}`)
-          .style("fill", colorScheme[getGenreByAcronym(genre)])
-          .style("opacity", "1");
+      if (isSelected || parallelSelected) {
+        d3.select(this).style("stroke-width", 5);
       } else {
-        d3.select(this)
-          .style("stroke-width", "5")
-          .style("stroke-opacity", 1)
-          .style("cursor", "pointer");
+        const classes = d3.select(this).attr("class").split(" ");
+        const genre = classes[1];
+        d3.select("#parallel-coordinates").selectAll(`.line-coordinate`)
+            .style("stroke", "grey")
+            .style("opacity", 0.2);
 
-        d3.select("#jitter-plot")
-          .selectAll(".circle")
-          .style("fill", "grey")
-          .style("opacity", "0.2");
-        d3.selectAll(`.circle.${genre}.${game}`)
-          .style("fill", colorScheme[getGenreByAcronym(genre)])
-          .style("stroke", "black")
-          .style("stroke-width", 2)
-          .style("opacity", "1");
-
-        d3.select("#line-chart")
-          .selectAll(".line")
-          .style("stroke", "grey")
-          .style("opacity", "0.2");
-        d3.select("#line-chart")
-          .selectAll(".circle")
-          .style("fill", "grey")
-          .style("opacity", "0.2");
-
-        d3.select("#line-chart")
-          .selectAll(`.line.${genre}`)
+        d3.select(this).style("stroke-width", 5)
           .style("stroke", colorScheme[getGenreByAcronym(genre)])
-          .style("opacity", "1");
-        d3.select("#line-chart")
-          .selectAll(`.circle.${genre}`)
+          .style("opacity", 1);
+
+        d3.select("#line-chart").selectAll(".line")
+            .style("stroke", "grey")
+            .style("opacity", 0.2);
+        d3.select("#line-chart").selectAll(".circle")
+          .style("fill", "grey")
+          .style("opacity", 0.2);
+    
+        d3.select("#jitter-plot").selectAll(".circle")
+          .style("fill", "grey")
+          .style("opacity", 0.2);
+
+        d3.select(`.line.${genre}`)
+          .style("stroke", colorScheme[getGenreByAcronym(genre)])
+          .style("opacity",1)
+          .style("stroke-width", 5)
+        d3.select("#line-chart").selectAll(`.circle.${genre}`)
           .style("fill", colorScheme[getGenreByAcronym(genre)])
-          .style("opacity", "1");
+          .style("opacity",1)
+
+        d3.select("#jitter-plot").selectAll(`.circle.${genre}`)
+          .style("fill", colorScheme[getGenreByAcronym(genre)])
+          .style("opacity", 1);
       }
 
       // Display game details (all attributes) on hover in a tooltip or info box
@@ -1670,13 +1728,12 @@ function createParallelCoordinates(data) {
           `
           <strong>Game Details:</strong><br/>
           Genre: ${d.Genre}<br/>
-          Game: ${d.Game}<br/>
-          TotalPlayers: ${d.TotalPlayers}<br/>
-          TotalTournaments: ${d.TotalTournaments}<br/>
-          TotalEarnings: ${formattedTotalEarnings}<br/>
-          ReleaseYear: ${d.ReleaseYear}<br/>
-          OfflineEarnings: ${formattedOnlineEarnings}<br/>
-          OnlineEarnings: ${formattedOfflineEarnings}<br/>
+          AveragePlayers: ${d.AveragePlayers}<br/>
+          AverageTournaments: ${d.AverageTournaments}<br/>
+          AverageEarnings: ${formattedAverageEarnings}<br/>
+          AverageReleaseYear: ${d.AverageReleaseYear}<br/>
+          AverageOfflineEarnings: ${formattedAverageOfflineEarnings}<br/>
+          AverageOnlineEarnings: ${formattedAverageOnlineEarnings}<br/>
         `
         );
       const container = d3
@@ -1717,87 +1774,43 @@ function createParallelCoordinates(data) {
       tooltip.style("top", tooltipY + "px").style("left", tooltipX + "px");
     })
     .on("mouseleave", function () {
-      if (!isSelected && !parallelSelected) {
-        d3.selectAll(".line-coordinate").each(function (d) {
+      
+      if (isSelected || parallelSelected) {
+        d3.select(this).style("stroke-width", 3);
+      } else {
+        d3.select(this).style("stroke-width", 3);
+
+        d3.select("#line-chart").selectAll(".line").each(function (d) {
           const classes = d3.select(this).attr("class").split(" ");
           const genre = classes[1];
-          const game = classes[2];
           d3.select(this)
-            .style("stroke-width", 2)
             .style("stroke", colorScheme[getGenreByAcronym(genre)])
-            .style("stroke-opacity", 0.2);
-        });
+            .style("stroke-width", 3)
+            .style("opacity", 1);
+        })
+        d3.select("#line-chart").selectAll(".circle").each(function (d) {
+          const classes = d3.select(this).attr("class").split(" ");
+          const genre = classes[1];
+          d3.select(this)
+            .style("fill", colorScheme[getGenreByAcronym(genre)])
+            .style("opacity", 1);
+        })
 
-        d3.select("#line-chart")
-          .selectAll(".line")
-          .each(function (d) {
-            const classes = d3.select(this).attr("class").split(" ");
-            const genre = classes[1];
-            const game = classes[2];
-            d3.select(this)
-              .style("stroke", colorScheme[getGenreByAcronym(genre)])
-              .style("opacity", 1);
-          });
-
-        d3.select("#line-chart")
-          .selectAll(".circle")
-          .each(function (d) {
-            const classes = d3.select(this).attr("class").split(" ");
-            const genre = classes[1];
-            const game = classes[2];
-            d3.select(this)
-              .style("fill", colorScheme[getGenreByAcronym(genre)])
-              .style("opacity", 1);
-          });
-
-        d3.select("#jitter-plot")
-          .selectAll(".circle")
-          .each(function (d) {
-            const classes = d3.select(this).attr("class").split(" ");
-            const genre = classes[1];
-            const game = classes[2];
-            d3.select(this)
-              .style("fill", colorScheme[getGenreByAcronym(genre)])
-              .style("stroke", "grey")
-              .style("stroke-width", 1)
-              .style("opacity", 1);
-          });
-      } else {
-        d3.select(this).style("stroke-width", "3").style("stroke-opacity", 0.2);
-        d3.select("#line-chart")
-          .selectAll(".line")
-          .each(function (d) {
-            const classes = d3.select(this).attr("class").split(" ");
-            const genre = classes[1];
-            const game = classes[2];
-            d3.select(this)
-              .style("stroke", colorScheme[getGenreByAcronym(genre)])
-              .style("opacity", 1);
-          });
-        d3.select("#line-chart")
-          .selectAll(".circle")
-          .each(function (d) {
-            const classes = d3.select(this).attr("class").split(" ");
-            const genre = classes[1];
-            const game = classes[2];
-            d3.select(this)
-              .style("fill", colorScheme[getGenreByAcronym(genre)])
-              .style("opacity", 1);
-          });
-        d3.select("#jitter-plot")
-          .selectAll(".circle")
-          .each(function (d) {
-            const classes = d3.select(this).attr("class").split(" ");
-            const genre = classes[1];
-            const game = classes[2];
-            d3.select(this)
-              .style("fill", colorScheme[getGenreByAcronym(genre)])
-              .style("stroke", "grey")
-              .style("stroke-width", 1)
-              .style("opacity", 1);
-          });
+        d3.select("#jitter-plot").selectAll(".circle").each(function (d) {
+          const classes = d3.select(this).attr("class").split(" ");
+          const genre = classes[1];
+          d3.select(this)
+            .style("fill", colorScheme[getGenreByAcronym(genre)])
+            .style("opacity", 1);
+        })
+        d3.select("#parallel-coordinates").selectAll(`.line-coordinate`).each(function (d) {
+          const classes = d3.select(this).attr("class").split(" ");
+          const genre = classes[1];
+          d3.select(this)
+            .style("stroke", colorScheme[getGenreByAcronym(genre)])
+            .style("opacity", 1);
+        })
       }
-      // Hide the tooltip when mouseout
       d3.select("#tooltip").style("visibility", "hidden");
     });
 
@@ -1816,45 +1829,43 @@ function createParallelCoordinates(data) {
   const drag = d3
     .drag()
     .on("start", function (event, d) {
-      d3.select(this).style("stroke", "black").raise();
+      d3.select(this.parentNode).style("stroke", "black");
     })
     .on("drag", function (event, d) {
-      const mouseX = event.x;
+      const mouseX = event.sourceEvent.clientX;
+  
+      const closestIndex = keys.reduce((closestIdx, key, index) => {
+        const currentDistance = Math.abs(mouseX - x(key)); // Use the x function to get the position of the key
+        const closestDistance = Math.abs(mouseX - x(keys[closestIdx]));
 
-      // Determine the new index based on the mouse position
-      const newIndex = keys.reduce((closestIndex, key, index) => {
-        const axisPosition = x(key);
-        const distance = Math.abs(mouseX - axisPosition); // Calculate distance from mouse to axis position
-
-        // Find the closest axis
-        return distance < Math.abs(mouseX - x(keys[closestIndex]))
-          ? index
-          : closestIndex;
-      }, 0); // Start with the first axis as the closest
-
-      // Move the dragged axis if the new index is different
-      const currentIndex = keys.indexOf(d);
-      if (newIndex !== currentIndex && newIndex !== -1) {
-        // Move the axis in the keys array
-        const draggedKey = keys.splice(currentIndex, 1)[0]; // Remove the dragged key
-        keys.splice(newIndex, 0, draggedKey); // Insert it in the new position
-
-        x.domain(keys); // Update the scale domain with new order
-        updateAxesAndLines(); // Update axes and lines based on the new order
+        // Update closest index if the current distance is less than the closest distance
+        return currentDistance < closestDistance ? index : closestIdx;
+    }, 0);
+      
+  
+      // Only move the axis if the new index is different and mouse has moved beyond threshold
+      if (closestIndex !== this.initialIndex) {
+        const currentIndex = keys.indexOf(d);
+  
+        if (closestIndex !== currentIndex) {
+          // Rearrange the keys array based on the new index
+          keys.splice(currentIndex, 1); // Remove the dragged key
+          keys.splice(closestIndex, 0, d); // Insert at the new position
+  
+          x.domain(keys); // Update the scale domain with the new order
+          updateAxesAndLines(); // Redraw the axes and lines based on new order
+  
+          // Update initial values for smooth behavior
+          this.initialX = mouseX;
+          this.initialIndex = closestIndex;
+        }
       }
     })
     .on("end", function (event, d) {
-      d3.select(this).style("stroke", "none"); // Reset stroke color when drag ends
+      d3.select(this.parentNode).style("stroke", "none"); // Reset stroke on drag end
     });
+  d3.select("#parallel-coordinates").selectAll(".axis text").call(drag);
 
-  const customTicks = {
-    TotalPlayers: [1, 10, 100, 1000, 10000, 100000],
-    TotalTournaments: [1, 10, 100, 1000],
-    TotalEarnings: [1, 10, 100, 1000, 10000, 100000],
-    OfflineEarnings: [1, 10, 100, 1000],
-    OnlineEarnings: [1, 10, 100, 1000],
-    ReleaseYear: d3.range(1985, 2025, 5),
-  };
   // Add axis for each key
   const axes = svg
     .append("g")
@@ -1869,18 +1880,10 @@ function createParallelCoordinates(data) {
 
       // Set ticks count
       const tickCount = 5;
+      axis.ticks(tickCount);
+      if (d === "AverageReleaseYear")
+        axis.tickFormat((AverageReleaseYear) => AverageReleaseYear.toString().replace(/,/g, ''));
 
-      // Format the ticks based on the data type
-      if (d === "ReleaseYear") {
-        axis.tickValues(customTicks[d]);
-      } else if (d === "TotalTournaments") {
-        axis.tickValues(customTicks[d]);
-      } else if (d === "TotalPlayers") {
-        axis.tickValues(customTicks[d]);
-      } else {
-        axis.ticks(tickCount);
-        axis.tickFormat(d3.format(".0s")); // Format as integer
-      }
       d3.select(this)
         .call(axis)
         .selectAll("text") // Customize tick text
@@ -1895,6 +1898,8 @@ function createParallelCoordinates(data) {
         .attr("text-anchor", "start")
         .attr("fill", "currentColor")
         .text((d) => d)
+        .style("cursor", "grabbing")
+        .call(drag)
     )
     .call((g) =>
       g
@@ -1917,7 +1922,6 @@ function createParallelCoordinates(data) {
     .on("start brush end", brushed);
 
   axes.call(brush);
-  axes.call(drag);
 
   const selections = new Map();
 
@@ -1940,12 +1944,37 @@ function createParallelCoordinates(data) {
       d3.select(this).style(
         "stroke",
         active ? colorScheme[d.Genre] : deselectedColor
+      ).style(
+        "stroke-opacity",
+        active ? 1 : 0.2
       );
       if (active) {
         d3.select(this).raise();
         selected.push(d);
       }
     });
+
+    if (selected != []) {
+      d3.select("#line-chart")
+        .selectAll(".line")
+        .style("stroke", "grey")
+        .style("opacity", "0.2");
+      d3.selectAll(".circle").style("fill", "grey").style("opacity", "0.2");
+
+      selected.forEach(selectedItem => {
+        const genre = selectedItem.Genre;
+        d3.select("#line-chart").selectAll(`.line.${acronyms[genre]}`)
+          .style("stroke", colorScheme[genre])
+          .style("opacity", "1");
+        d3.select("#line-chart").selectAll(`.circle.${acronyms[genre]}`)
+          .style("fill", colorScheme[genre])
+          .style("opacity", "1");
+        d3.selectAll(`.circle.${acronyms[genre]}`)
+          .style("fill", colorScheme[genre])
+          .style("opacity", "1");
+  
+      })
+    }
     svg.property("value", selected).dispatch("input");
   }
 
@@ -1993,114 +2022,117 @@ function updateParallelCoordinates(data) {
     .style("border-radius", "4px")
     .style("visibility", "hidden");
 
-  // Create a dictionary to hold game data
-  const gameDataMap = {};
+   // Create a dictionary to hold game data
+   const genreDataMap = {};
 
-  // Iterate over the data to aggregate values
-  data.forEach((d) => {
-    const game = d.Game;
-    const genre = d.Genre;
-
-    if (!gameDataMap[game]) {
-      gameDataMap[game] = {
-        Game: game,
+   // Iterate over the data to aggregate values
+   data.forEach((d) => {
+     const genre = d.Genre;
+ 
+     if (!genreDataMap[genre]) {
+      genreDataMap[genre] = {
         Genre: genre, // Store genre
         TotalPlayers: 0,
         TotalTournaments: 0,
         TotalEarnings: 0,
-        ReleaseYear: d.ReleaseYear, // Set the initial release date
+        TotalReleaseYears: 0, // Sum of release years for averaging
+        Count: 0, // Count of entries to calculate average
         OfflineEarnings: d.OfflineEarnings,
         OnlineEarnings: d.OnlineEarnings,
       };
     }
-    gameDataMap[game].TotalTournaments += d.Tournaments;
-    gameDataMap[game].TotalPlayers += d.Players;
-    gameDataMap[game].TotalEarnings += d.Earnings;
+    genreDataMap[genre].TotalTournaments += d.Tournaments;
+    genreDataMap[genre].TotalPlayers += d.Players;
+    genreDataMap[genre].TotalEarnings += d.Earnings;
+    genreDataMap[genre].OfflineEarnings += d.OfflineEarnings;
+    genreDataMap[genre].OnlineEarnings += d.OnlineEarnings;
+
+    // Accumulate total release years for averaging
+    genreDataMap[genre].TotalReleaseYears += d.ReleaseYear;
+    genreDataMap[genre].Count += 1; // Increment count for each entry
   });
 
   // Convert the gameDataMap to an array
-  const coordinatesData = Object.values(gameDataMap);
-  const aggregatedData = coordinatesData.map((d) => ({
-    ...d,
-    TotalPlayers: d.TotalPlayers > 0 ? d.TotalPlayers : 1, // Replace 0 with 1
-    TotalTournaments: d.TotalTournaments > 0 ? d.TotalTournaments : 1, // Replace 0 with 1
-    TotalEarnings: d.TotalEarnings > 0 ? d.TotalEarnings : 1, // Replace 0 with 1
-    OfflineEarnings: d.OfflineEarnings > 0 ? d.OfflineEarnings : 1, // Replace 0 with 1
-    OnlineEarnings: d.OnlineEarnings > 0 ? d.OnlineEarnings : 1, // Replace 0 with 1
-  }));
+  // Convert the genreDataMap to an array
+  const coordinatesData = Object.values(genreDataMap);
+  const aggregatedData = coordinatesData.map((d) => {
+    const averagePlayers = d.Count > 0 ? d.TotalPlayers / d.Count : 0;
+    const averageTournaments = d.Count > 0 ? d.TotalTournaments / d.Count : 0;
+    const averageEarnings = d.Count > 0 ? d.TotalEarnings / d.Count : 0;
+    const averageOfflineEarnings = d.Count > 0 ? d.OfflineEarnings / d.Count : 0;
+    const averageOnlineEarnings = d.Count > 0 ? d.OnlineEarnings / d.Count : 0;
+
+    return {
+      Genre: d.Genre,
+      AveragePlayers: Math.floor(averagePlayers), // Round down to the nearest integer
+      AverageTournaments: Math.floor(averageTournaments), // Round down to the nearest integer
+      AverageEarnings: Math.floor(averageEarnings), // Round down to the nearest integer
+      AverageOfflineEarnings: Math.floor(averageOfflineEarnings), // Round down to the nearest integer
+      AverageOnlineEarnings: Math.floor(averageOnlineEarnings), // Round down to the nearest integer
+      AverageReleaseYear: d.Count > 0 ? Math.round(d.TotalReleaseYears / d.Count) : 0, // Calculate average release year and round to nearest integer
+    };
+  });
 
   const keys = [
-    "TotalPlayers",
-    "TotalTournaments",
-    "TotalEarnings",
-    "ReleaseYear",
-    "OfflineEarnings",
-    "OnlineEarnings",
+    "AveragePlayers",
+    "AverageTournaments",
+    "AverageEarnings",
+    "AverageReleaseYear",
+    "AverageOfflineEarnings",
+    "AverageOnlineEarnings",
   ];
 
   const y = new Map(
     keys.map((key) => [
-      key,
-      key === "ReleaseYear"
-        ? d3
+      key, d3
             .scaleLinear() // Use time scale for ReleaseDate
             .domain(d3.extent(aggregatedData, (d) => d[key])) // Set domain using the extent of ReleaseDate
             .range([height - margin.bottom, margin.top])
-        : d3
-            .scaleLog() // Use log scale for other keys
-            .domain(
-              d3
-                .extent(aggregatedData, (d) => d[key])
-                .map((d) => (d > 0 ? d : 1))
-            ) // Ensure domain starts from 1 to avoid log(0)
-            .range([height - margin.bottom, margin.top]),
     ])
   );
 
   const x = d3.scalePoint(keys, [margin.left, width - margin.right]);
 
-  const customTicks = {
-    TotalPlayers: [1, 10, 100, 1000, 10000, 100000],
-    TotalTournaments: [1, 10, 100, 1000],
-    TotalEarnings: [1, 10, 100, 1000, 10000, 100000],
-    OfflineEarnings: [1, 10, 100, 1000],
-    OnlineEarnings: [1, 10, 100, 1000],
-    ReleaseYear: d3.range(1985, 2025, 5),
-  };
 
   const drag = d3
     .drag()
     .on("start", function (event, d) {
-      d3.select(this).style("stroke", "black").raise();
+      d3.select(this.parentNode).style("stroke", "black");
     })
     .on("drag", function (event, d) {
-      const mouseX = event.x;
+      const mouseX = event.sourceEvent.clientX;
+  
+      const closestIndex = keys.reduce((closestIdx, key, index) => {
+        const currentDistance = Math.abs(mouseX - x(key)); // Use the x function to get the position of the key
+        const closestDistance = Math.abs(mouseX - x(keys[closestIdx]));
 
-      // Determine the new index based on the mouse position
-      const newIndex = keys.reduce((closestIndex, key, index) => {
-        const axisPosition = x(key);
-        const distance = Math.abs(mouseX - axisPosition); // Calculate distance from mouse to axis position
-
-        // Find the closest axis
-        return distance < Math.abs(mouseX - x(keys[closestIndex]))
-          ? index
-          : closestIndex;
-      }, 0); // Start with the first axis as the closest
-
-      // Move the dragged axis if the new index is different
-      const currentIndex = keys.indexOf(d);
-      if (newIndex !== currentIndex && newIndex !== -1) {
-        // Move the axis in the keys array
-        const draggedKey = keys.splice(currentIndex, 1)[0]; // Remove the dragged key
-        keys.splice(newIndex, 0, draggedKey); // Insert it in the new position
-
-        x.domain(keys); // Update the scale domain with new order
-        updateAxesAndLines(); // Update axes and lines based on the new order
+        // Update closest index if the current distance is less than the closest distance
+        return currentDistance < closestDistance ? index : closestIdx;
+    }, 0);
+      
+  
+      // Only move the axis if the new index is different and mouse has moved beyond threshold
+      if (closestIndex !== this.initialIndex) {
+        const currentIndex = keys.indexOf(d);
+  
+        if (closestIndex !== currentIndex) {
+          // Rearrange the keys array based on the new index
+          keys.splice(currentIndex, 1); // Remove the dragged key
+          keys.splice(closestIndex, 0, d); // Insert at the new position
+  
+          x.domain(keys); // Update the scale domain with the new order
+          updateAxesAndLines(); // Redraw the axes and lines based on new order
+  
+          // Update initial values for smooth behavior
+          this.initialX = mouseX;
+          this.initialIndex = closestIndex;
+        }
       }
     })
     .on("end", function (event, d) {
-      d3.select(this).style("stroke", "none"); // Reset stroke color when drag ends
+      d3.select(this.parentNode).style("stroke", "none"); // Reset stroke on drag end
     });
+  d3.select("#parallel-coordinates").selectAll(".axis text").call(drag);
 
   // Create or update axes
   const axesGroup = container.select(".axes");
@@ -2114,19 +2146,12 @@ function updateParallelCoordinates(data) {
     .attr("transform", (d) => `translate(${x(d)}, 0)`)
     .each(function (d) {
       const axis = d3.axisLeft(y.get(d));
-      const tickCount = 6;
+      const tickCount = 5;
 
-      // Set ticks count
-      if (d === "ReleaseYear") {
-        axis.tickValues(customTicks[d]);
-      } else if (d === "TotalTournaments") {
-        axis.tickValues(customTicks[d]);
-      } else if (d === "TotalPlayers") {
-        axis.tickValues(customTicks[d]);
-      } else {
-        axis.ticks(tickCount);
-        axis.tickFormat(d3.format(".0s")); // Format as integer
-      }
+      axis.ticks(tickCount);
+      if (d === "AverageReleaseYear")
+        axis.tickFormat((AverageReleaseYear) => AverageReleaseYear.toString().replace(/,/g, ''));
+
 
       d3.select(this)
         .call(axis)
@@ -2141,18 +2166,11 @@ function updateParallelCoordinates(data) {
     .attr("transform", (d) => `translate(${x(d)}, 0)`)
     .each(function (d) {
       const axis = d3.axisLeft(y.get(d));
-      const tickCount = 6;
+      const tickCount = 5;
 
-      if (d === "ReleaseYear") {
-        axis.tickValues(customTicks[d]);
-      } else if (d === "TotalTournaments") {
-        axis.tickValues(customTicks[d]);
-      } else if (d === "TotalPlayers") {
-        axis.tickValues(customTicks[d]);
-      } else {
-        axis.ticks(tickCount);
-        axis.tickFormat(d3.format(".0s")); // Format as integer
-      }
+      axis.ticks(tickCount);
+      if (d === "AverageReleaseYear")
+        axis.tickFormat((AverageReleaseYear) => AverageReleaseYear.toString().replace(/,/g, ''));
 
       d3.select(this)
         .call(axis)
@@ -2175,7 +2193,7 @@ function updateParallelCoordinates(data) {
   const paths = svg
     .select(".path-group")
     .selectAll("path.line-coordinate")
-    .data(aggregatedData, (d) => d.Game); // Use a key function based on Game to identify data points
+    .data(aggregatedData, (d) => d.Genre); // Use a key function based on Game to identify data points
 
   // Handle the enter selection: create new path elements for new data points
   paths
@@ -2183,7 +2201,7 @@ function updateParallelCoordinates(data) {
     .append("path")
     .attr(
       "class",
-      (d) => `line-coordinate ${acronyms[d.Genre]} ${createClassNames(d.Game)}`
+      (d) => `line-coordinate ${acronyms[d.Genre]}}`
     )
     .attr("stroke", (d) => colorScheme[d.Genre])
     .attr("d", (d) => {
@@ -2196,63 +2214,59 @@ function updateParallelCoordinates(data) {
       return line(lineData);
     })
     .on("mouseover", function (event, d) {
-      const formattedTotalEarnings = new Intl.NumberFormat("en-US", {
+      const formattedAverageEarnings= new Intl.NumberFormat("en-US", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
-      }).format(d.TotalEarnings);
-      const formattedOnlineEarnings = new Intl.NumberFormat("en-US", {
+      }).format(d.AverageEarnings);
+      const formattedAverageOnlineEarnings = new Intl.NumberFormat("en-US", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
-      }).format(d.OnlineEarnings);
-      const formattedOfflineEarnings = new Intl.NumberFormat("en-US", {
+      }).format(d.AverageOnlineEarnings);
+      const formattedAverageOfflineEarnings = new Intl.NumberFormat("en-US", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
-      }).format(d.OfflineEarnings);
+      }).format(d.AverageOfflineEarnings);
 
       tooltip.transition().duration(200).style("opacity", 1);
       const classes = d3.select(this).attr("class").split(" ");
       const genre = classes[1];
       const game = classes[2];
 
-      if (!isSelected) {
-        d3.selectAll(".line-coordinate")
-          .style("stroke", "grey")
-          .style("stroke-opacity", "0.1");
-        d3.select(this)
-          .style("stroke-width", "5")
-          .style("stroke", colorScheme[getGenreByAcronym(genre)])
-          .style("stroke-opacity", "1")
-          .style("cursor", "pointer");
-
-        d3.select("#jitter-plot")
-          .selectAll(".circle")
-          .style("fill", "grey")
-          .style("opacity", "0.2");
-        d3.selectAll(`.circle.${genre}.${game}`)
-          .style("fill", colorScheme[getGenreByAcronym(genre)])
-          .style("stroke", "black")
-          .style("stroke-width", 2)
-          .style("opacity", "1");
-
-        d3.select("#line-chart")
-          .selectAll(".line")
-          .style("stroke", "grey")
-          .style("opacity", "0.2");
-        d3.select("#line-chart")
-          .selectAll(".circle")
-          .style("fill", "grey")
-          .style("opacity", "0.2");
-
-        d3.select("#line-chart")
-          .selectAll(`.line.${genre}`)
-          .style("stroke", colorScheme[getGenreByAcronym(genre)])
-          .style("opacity", "1");
-        d3.select("#line-chart")
-          .selectAll(`.circle.${genre}`)
-          .style("fill", colorScheme[getGenreByAcronym(genre)])
-          .style("opacity", "1");
+      if (isSelected || parallelSelected) {
+        d3.select(this).style("stroke-width", 5);
       } else {
-        d3.select(this).style("stroke-width", "5").style("cursor", "pointer");
+        const classes = d3.select(this).attr("class").split(" ");
+        const genre = classes[1];
+        d3.select("#parallel-coordinates").selectAll(`.line-coordinate`)
+            .style("stroke", "grey")
+            .style("opacity", 0.2);
+
+        d3.select(this).style("stroke-width", 5)
+          .style("stroke", colorScheme[getGenreByAcronym(genre)])
+          .style("opacity", 1);
+
+        d3.select("#line-chart").selectAll(".line")
+            .style("stroke", "grey")
+            .style("opacity", 0.2);
+        d3.select("#line-chart").selectAll(".circle")
+          .style("fill", "grey")
+          .style("opacity", 0.2);
+    
+        d3.select("#jitter-plot").selectAll(".circle")
+          .style("fill", "grey")
+          .style("opacity", 0.2);
+
+        d3.select(`.line.${genre}`)
+          .style("stroke", colorScheme[getGenreByAcronym(genre)])
+          .style("opacity",1)
+          .style("stroke-width", 5)
+        d3.select("#line-chart").selectAll(`.circle.${genre}`)
+          .style("fill", colorScheme[getGenreByAcronym(genre)])
+          .style("opacity",1)
+
+        d3.select("#jitter-plot").selectAll(`.circle.${genre}`)
+          .style("fill", colorScheme[getGenreByAcronym(genre)])
+          .style("opacity", 1);
       }
 
       // Display game details (all attributes) on hover in a tooltip or info box
@@ -2262,13 +2276,12 @@ function updateParallelCoordinates(data) {
           `
           <strong>Game Details:</strong><br/>
           Genre: ${d.Genre}<br/>
-          Game: ${d.Game}<br/>
-          TotalPlayers: ${d.TotalPlayers}<br/>
-          TotalTournaments: ${d.TotalTournaments}<br/>
-          TotalEarnings: ${formattedTotalEarnings}<br/>
-          ReleaseYear: ${d.ReleaseYear}<br/>
-          OfflineEarnings: ${formattedOnlineEarnings}<br/>
-          OnlineEarnings: ${formattedOfflineEarnings}<br/>
+          AveragePlayers: ${d.AveragePlayers}<br/>
+          AverageTournaments: ${d.AverageTournaments}<br/>
+          AverageEarnings: ${formattedAverageEarnings}<br/>
+          AverageReleaseYear: ${d.AverageReleaseYear}<br/>
+          AverageOfflineEarnings: ${formattedAverageOfflineEarnings}<br/>
+          AverageOnlineEarnings: ${formattedAverageOnlineEarnings}<br/>
         `
         );
       const container = d3
@@ -2309,55 +2322,43 @@ function updateParallelCoordinates(data) {
       tooltip.style("top", tooltipY + "px").style("left", tooltipX + "px");
     })
     .on("mouseleave", function () {
-      if (!isSelected) {
-        d3.selectAll(".line-coordinate").each(function (d) {
+      
+      if (isSelected || parallelSelected) {
+        d3.select(this).style("stroke-width", 3);
+      } else {
+        d3.select(this).style("stroke-width", 3);
+
+        d3.select("#line-chart").selectAll(".line").each(function (d) {
           const classes = d3.select(this).attr("class").split(" ");
           const genre = classes[1];
-          const game = classes[2];
           d3.select(this)
-            .style("stroke-width", 2)
             .style("stroke", colorScheme[getGenreByAcronym(genre)])
-            .style("stroke-opacity", 0.2);
-        });
+            .style("stroke-width", 3)
+            .style("opacity", 1);
+        })
+        d3.select("#line-chart").selectAll(".circle").each(function (d) {
+          const classes = d3.select(this).attr("class").split(" ");
+          const genre = classes[1];
+          d3.select(this)
+            .style("fill", colorScheme[getGenreByAcronym(genre)])
+            .style("opacity", 1);
+        })
 
-        d3.select("#line-chart")
-          .selectAll(".line")
-          .each(function (d) {
-            const classes = d3.select(this).attr("class").split(" ");
-            const genre = classes[1];
-            const game = classes[2];
-            d3.select(this)
-              .style("stroke", colorScheme[getGenreByAcronym(genre)])
-              .style("opacity", 1);
-          });
-
-        d3.select("#line-chart")
-          .selectAll(".circle")
-          .each(function (d) {
-            const classes = d3.select(this).attr("class").split(" ");
-            const genre = classes[1];
-            const game = classes[2];
-            d3.select(this)
-              .style("fill", colorScheme[getGenreByAcronym(genre)])
-              .style("opacity", 1);
-          });
-
-        d3.select("#jitter-plot")
-          .selectAll(".circle")
-          .each(function (d) {
-            const classes = d3.select(this).attr("class").split(" ");
-            const genre = classes[1];
-            const game = classes[2];
-            d3.select(this)
-              .style("fill", colorScheme[getGenreByAcronym(genre)])
-              .style("stroke", "grey")
-              .style("stroke-width", 1)
-              .style("opacity", 1);
-          });
-      } else {
-        d3.select(this).style("stroke-width", "3");
+        d3.select("#jitter-plot").selectAll(".circle").each(function (d) {
+          const classes = d3.select(this).attr("class").split(" ");
+          const genre = classes[1];
+          d3.select(this)
+            .style("fill", colorScheme[getGenreByAcronym(genre)])
+            .style("opacity", 1);
+        })
+        d3.select("#parallel-coordinates").selectAll(`.line-coordinate`).each(function (d) {
+          const classes = d3.select(this).attr("class").split(" ");
+          const genre = classes[1];
+          d3.select(this)
+            .style("stroke", colorScheme[getGenreByAcronym(genre)])
+            .style("opacity", 1);
+        })
       }
-      // Hide the tooltip when mouseout
       d3.select("#tooltip").style("visibility", "hidden");
     });
 
@@ -2373,7 +2374,6 @@ function updateParallelCoordinates(data) {
     .on("start brush end", brushed);
 
   axisSelection.call(brush);
-  axisSelection.call(drag);
 
   function updateAxesAndLines() {
     // Update axes positions
@@ -2419,7 +2419,27 @@ function updateParallelCoordinates(data) {
         selected.push(d);
       }
     });
+    if (selected != []) {
+      d3.select("#line-chart")
+        .selectAll(".line")
+        .style("stroke", "grey")
+        .style("opacity", "0.2");
+      d3.selectAll(".circle").style("fill", "grey").style("opacity", "0.2");
 
+      selected.forEach(selectedItem => {
+        const genre = selectedItem.Genre;
+        d3.select("#line-chart").selectAll(`.line.${acronyms[genre]}`)
+          .style("stroke", colorScheme[genre])
+          .style("opacity", "1");
+        d3.select("#line-chart").selectAll(`.circle.${acronyms[genre]}`)
+          .style("fill", colorScheme[genre])
+          .style("opacity", "1");
+        d3.selectAll(`.circle.${acronyms[genre]}`)
+          .style("fill", colorScheme[genre])
+          .style("opacity", "1");
+  
+      })
+    }
     svg.property("value", selected).dispatch("input");
   }
 }
