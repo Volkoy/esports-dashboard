@@ -1206,6 +1206,7 @@ function createJitterPlot(data) {
       const [[x0, y0], [x1, y1]] = selection;
       const selected = [];
       const selectGames = [];
+      const gameNames = [];
       circles.each(function (d) {
         const cx = parseFloat(d3.select(this).attr("cx"));
         const cy = parseFloat(d3.select(this).attr("cy"));
@@ -1213,19 +1214,26 @@ function createJitterPlot(data) {
           const classes = d3.select(this).attr("class").split(" ");
           const genre = classes[1];
           const game = classes[2];
+          const game_name = d.Game;
           if (!selected.includes(genre)) {
             selected.push(genre);
           }
           if (!selectGames.includes(game)) {
             selectGames.push([genre, game]);
           }
+          if (!gameNames.includes(game_name)) {
+            gameNames.push(game_name);
+          }
         }
       });
+      const filteredData = data.filter(d =>
+        gameNames.some((name) => d.Game == name)
+      );
+      updateLineChart(filteredData);
+      updateParallelCoordinates(filteredData);
       d3.selectAll(".line").style("stroke", "grey").style("opacity", "0.2");
       d3.selectAll(".circle").style("fill", "grey").style("opacity", "0.2");
-      d3.selectAll(".line-coordinate")
-        .style("stroke", "grey")
-        .style("stroke-opacity", "0.1");
+
       selected.forEach((genre) => {
         d3.selectAll(`.line.${genre}`)
           .style("stroke", colorScheme[getGenreByAcronym(genre)])
@@ -1235,12 +1243,7 @@ function createJitterPlot(data) {
           .style("opacity", "1");
       });
 
-      selectGames.forEach((game) => {
-        d3.select(`.line-coordinate.${game[0]}`)
-          .style("stroke", colorScheme[getGenreByAcronym(game[0])])
-          .style("stroke-opacity", "1")
-          .style("stroke-width", "3");
-      });
+      
       // Highlight circles within the brushed area
       circles.style("opacity", function (d) {
         // Check that d contains data and has a Genre property
@@ -1268,6 +1271,8 @@ function createJitterPlot(data) {
           : "grey";
       });
     } else {
+      updateLineChart(data);
+      updateParallelCoordinates(data);
       isSelected = false;
       circles.style("opacity", "1");
       circles.each(function (d) {
@@ -1302,8 +1307,8 @@ function createJitterPlot(data) {
         const genre = classes[1];
         d3.select(this)
           .style("stroke", colorScheme[getGenreByAcronym(genre)]) // Restore based on genre
-          .style("stroke-opacity", "0.2")
-          .style("stroke-width", "2");
+          .style("opacity", "1")
+          .style("stroke-width", "3");
       });
     }
   }
@@ -1630,6 +1635,17 @@ function createParallelCoordinates(data) {
   );
 
   const x = d3.scalePoint(keys, [margin.left, width - margin.right]);
+  // Create the tooltip div
+  var tooltip = d3
+    .select("body")
+    .append("div")
+    .attr("id", "tooltip")
+    .style("position", "absolute")
+    .style("background", "#f9f9f9")
+    .style("padding", "8px")
+    .style("border", "1px solid #ccc")
+    .style("border-radius", "4px")
+    .style("visibility", "hidden");
 
   // Create SVG
   const svg = container
@@ -1813,18 +1829,6 @@ function createParallelCoordinates(data) {
       }
       d3.select("#tooltip").style("visibility", "hidden");
     });
-
-  // Create the tooltip div
-  var tooltip = d3
-    .select("body")
-    .append("div")
-    .attr("id", "tooltip")
-    .style("position", "absolute")
-    .style("background", "#f9f9f9")
-    .style("padding", "8px")
-    .style("border", "1px solid #ccc")
-    .style("border-radius", "4px")
-    .style("visibility", "hidden");
 
   const drag = d3
     .drag()
