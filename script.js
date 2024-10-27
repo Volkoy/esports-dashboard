@@ -501,7 +501,7 @@ function updateLineChart(data) {
     .attr("cy", (d) => yScale(d.Earnings));
 
   // Exit selection: Remove circles that no longer have data
-  circles.exit().transition().duration(500).style("opacity", 0).remove();
+  circles.exit().remove();
 
   // Update the axes
   const xAxis = svg.select(".xAxis");
@@ -1271,8 +1271,9 @@ function createJitterPlot(data) {
           : "grey";
       });
     } else {
-      updateLineChart(data);
-      updateParallelCoordinates(data);
+      
+      updateCharts(data);
+      
       isSelected = false;
       circles.style("opacity", "1");
       circles.each(function (d) {
@@ -1295,13 +1296,10 @@ function createJitterPlot(data) {
         const classes = d3.select(this).attr("class").split(" ");
         const genre = classes[1];
         d3.select(this)
-          .transition()
-          .duration(200)
           .attr("r", "5")
           .style("fill", colorScheme[getGenreByAcronym(genre)]) // Restore based on genre
           .style("opacity", "1");
       });
-
       d3.selectAll(".line-coordinate").each(function (d) {
         const classes = d3.select(this).attr("class").split(" ");
         const genre = classes[1];
@@ -1636,16 +1634,17 @@ function createParallelCoordinates(data) {
 
   const x = d3.scalePoint(keys, [margin.left, width - margin.right]);
   // Create the tooltip div
-  var tooltip = d3
-    .select("body")
+  const tooltip = d3
+    .select(".ParallelCoordinates")
     .append("div")
-    .attr("id", "tooltip")
+    .attr("class", "tooltip")
     .style("position", "absolute")
-    .style("background", "#f9f9f9")
     .style("padding", "8px")
+    .style("background-color", "white")
     .style("border", "1px solid #ccc")
     .style("border-radius", "4px")
-    .style("visibility", "hidden");
+    .style("pointer-events", "none")
+    .style("opacity", 0);
 
   // Create SVG
   const svg = container
@@ -1695,7 +1694,6 @@ function createParallelCoordinates(data) {
         maximumFractionDigits: 2,
       }).format(d.AverageOfflineEarnings);
 
-      tooltip.transition().duration(200).style("opacity", 1);
       const classes = d3.select(this).attr("class").split(" ");
       const genre = classes[1];
       const game = classes[2];
@@ -1738,56 +1736,48 @@ function createParallelCoordinates(data) {
       }
 
       // Display game details (all attributes) on hover in a tooltip or info box
-      d3.select("#tooltip")
-        .style("visibility", "visible")
-        .html(
-          `
-          <strong>Game Details:</strong><br/>
-          Genre: ${d.Genre}<br/>
-          AveragePlayers: ${d.AveragePlayers}<br/>
-          AverageTournaments: ${d.AverageTournaments}<br/>
-          AverageEarnings: ${formattedAverageEarnings}<br/>
-          AverageReleaseYear: ${d.AverageReleaseYear}<br/>
-          AverageOfflineEarnings: ${formattedAverageOfflineEarnings}<br/>
-          AverageOnlineEarnings: ${formattedAverageOnlineEarnings}<br/>
+      tooltip.transition().duration(200).style("opacity", 1)
+      tooltip
+      .html(
         `
-        );
-      const container = d3
-        .select(".ParallelCoordinates")
-        .node()
-        .getBoundingClientRect();
-      const tooltipNode = tooltip.node();
-      const tooltipWidth = tooltipNode.offsetWidth;
-      const tooltipHeight = tooltipNode.offsetHeight;
-
-      // Get cursor position relative to the container
-      const cursorX = event.pageX - container.left;
-      const cursorY = event.pageY - container.top;
-
-      // Dynamically calculate offsets based on cursor position
-      let offsetX = 15; // Default horizontal offset
-      let offsetY = 15; // Default vertical offset
-
-      // Check if cursor is near the right edge
-      if (cursorX + tooltipWidth + offsetX > container.width) {
-        offsetX = -tooltipWidth - 15; // Move to the left of the cursor
+        <strong>Game Details:</strong><br/>
+        Genre: ${d.Genre}<br/>
+        AveragePlayers: ${d.AveragePlayers}<br/>
+        AverageTournaments: ${d.AverageTournaments}<br/>
+        AverageEarnings: ${formattedAverageEarnings}<br/>
+        AverageReleaseYear: ${d.AverageReleaseYear}<br/>
+        AverageOfflineEarnings: ${formattedAverageOfflineEarnings}<br/>
+        AverageOnlineEarnings: ${formattedAverageOnlineEarnings}<br/>
+      `
+      )
+        .style("z-index", "2");
+      const container = d3.select(".ParallelCoordinates").node();
+      const containerRect = container.getBoundingClientRect();
+    
+      // Get mouse position relative to the container
+      const mouseX = event.clientX - containerRect.left;
+      const mouseY = event.clientY - containerRect.top;
+    
+      // Tooltip dimensions
+      const tooltipWidth = tooltip.node().offsetWidth;
+      const tooltipHeight = tooltip.node().offsetHeight;
+    
+      // Calculate tooltip position
+      let tooltipX = mouseX + 10; // Offset from mouse position
+      let tooltipY = mouseY + 10;
+    
+      // Prevent overflow on the right side
+      if (tooltipX + tooltipWidth > containerRect.width) {
+        tooltipX = containerRect.width - tooltipWidth - 10;
       }
-
-      // Check if cursor is near the bottom edge
-      if (cursorY + tooltipHeight + offsetY > container.height) {
-        offsetY = -tooltipHeight - 15; // Move above the cursor
+    
+      // Prevent overflow on the bottom side
+      if (tooltipY + tooltipHeight > containerRect.height) {
+        tooltipY = containerRect.height - tooltipHeight - 10;
       }
-
-      // Calculate the tooltip's position based on mouse event and dynamic offset
-      let tooltipX = event.pageX + offsetX;
-      let tooltipY = event.pageY + offsetY;
-
-      // Ensure the tooltip does not overflow the container on the top or left
-      if (tooltipX < container.left) tooltipX = container.left + 15;
-      if (tooltipY < container.top) tooltipY = container.top + 15;
-
-      // Apply the adjusted position to the tooltip
-      tooltip.style("top", tooltipY + "px").style("left", tooltipX + "px");
+    
+      // Set the tooltip position
+      tooltip.style("left", `${tooltipX}px`).style("top", `${tooltipY}px`);
     })
     .on("mouseleave", function () {
       
@@ -1827,7 +1817,7 @@ function createParallelCoordinates(data) {
             .style("opacity", 1);
         })
       }
-      d3.select("#tooltip").style("visibility", "hidden");
+      tooltip.style("opacity", 0);
     });
 
   const drag = d3
@@ -2014,18 +2004,6 @@ function updateParallelCoordinates(data) {
   const brushWidth = 20;
   const deselectedColor = "#ddd";
 
-  // Create the tooltip div
-  var tooltip = d3
-    .select("body")
-    .append("div")
-    .attr("id", "tooltip")
-    .style("position", "absolute")
-    .style("background", "#f9f9f9")
-    .style("padding", "8px")
-    .style("border", "1px solid #ccc")
-    .style("border-radius", "4px")
-    .style("visibility", "hidden");
-
    // Create a dictionary to hold game data
    const genreDataMap = {};
 
@@ -2205,7 +2183,7 @@ function updateParallelCoordinates(data) {
     .append("path")
     .attr(
       "class",
-      (d) => `line-coordinate ${acronyms[d.Genre]}}`
+      (d) => `line-coordinate ${acronyms[d.Genre]}`
     )
     .attr("stroke", (d) => colorScheme[d.Genre])
     .attr("d", (d) => {
@@ -2230,8 +2208,7 @@ function updateParallelCoordinates(data) {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       }).format(d.AverageOfflineEarnings);
-
-      tooltip.transition().duration(200).style("opacity", 1);
+      const tooltip = d3.select(".ParallelCoordinates").select(".tooltip");
       const classes = d3.select(this).attr("class").split(" ");
       const genre = classes[1];
       const game = classes[2];
@@ -2274,8 +2251,8 @@ function updateParallelCoordinates(data) {
       }
 
       // Display game details (all attributes) on hover in a tooltip or info box
-      d3.select("#tooltip")
-        .style("visibility", "visible")
+      tooltip
+        .style("opacity", 1)
         .html(
           `
           <strong>Game Details:</strong><br/>
@@ -2288,45 +2265,36 @@ function updateParallelCoordinates(data) {
           AverageOnlineEarnings: ${formattedAverageOnlineEarnings}<br/>
         `
         );
-      const container = d3
-        .select(".ParallelCoordinates")
-        .node()
-        .getBoundingClientRect();
-      const tooltipNode = tooltip.node();
-      const tooltipWidth = tooltipNode.offsetWidth;
-      const tooltipHeight = tooltipNode.offsetHeight;
-
-      // Get cursor position relative to the container
-      const cursorX = event.pageX - container.left;
-      const cursorY = event.pageY - container.top;
-
-      // Dynamically calculate offsets based on cursor position
-      let offsetX = 15; // Default horizontal offset
-      let offsetY = 15; // Default vertical offset
-
-      // Check if cursor is near the right edge
-      if (cursorX + tooltipWidth + offsetX > container.width) {
-        offsetX = -tooltipWidth - 15; // Move to the left of the cursor
+      const container = d3.select(".ParallelCoordinates").node();
+      const containerRect = container.getBoundingClientRect();
+    
+      // Get mouse position relative to the container
+      const mouseX = event.clientX - containerRect.left;
+      const mouseY = event.clientY - containerRect.top;
+    
+      // Tooltip dimensions
+      const tooltipWidth = tooltip.node().offsetWidth;
+      const tooltipHeight = tooltip.node().offsetHeight;
+    
+      // Calculate tooltip position
+      let tooltipX = mouseX + 10; // Offset from mouse position
+      let tooltipY = mouseY + 10;
+    
+      // Prevent overflow on the right side
+      if (tooltipX + tooltipWidth > containerRect.width) {
+        tooltipX = containerRect.width - tooltipWidth - 10;
       }
-
-      // Check if cursor is near the bottom edge
-      if (cursorY + tooltipHeight + offsetY > container.height) {
-        offsetY = -tooltipHeight - 15; // Move above the cursor
+    
+      // Prevent overflow on the bottom side
+      if (tooltipY + tooltipHeight > containerRect.height) {
+        tooltipY = containerRect.height - tooltipHeight - 10;
       }
-
-      // Calculate the tooltip's position based on mouse event and dynamic offset
-      let tooltipX = event.pageX + offsetX;
-      let tooltipY = event.pageY + offsetY;
-
-      // Ensure the tooltip does not overflow the container on the top or left
-      if (tooltipX < container.left) tooltipX = container.left + 15;
-      if (tooltipY < container.top) tooltipY = container.top + 15;
-
-      // Apply the adjusted position to the tooltip
-      tooltip.style("top", tooltipY + "px").style("left", tooltipX + "px");
+    
+      // Set the tooltip position
+      tooltip.style("left", `${tooltipX}px`).style("top", `${tooltipY}px`);
     })
     .on("mouseleave", function () {
-      
+      const tooltip = d3.select(".ParallelCoordinates").select(".tooltip");
       if (isSelected || parallelSelected) {
         d3.select(this).style("stroke-width", 3);
       } else {
@@ -2363,7 +2331,7 @@ function updateParallelCoordinates(data) {
             .style("opacity", 1);
         })
       }
-      d3.select("#tooltip").style("visibility", "hidden");
+      tooltip.style("opacity", 0);
     });
 
   // Handle the exit selection: remove any paths that are no longer needed
@@ -2402,14 +2370,17 @@ function updateParallelCoordinates(data) {
 
   function brushed({ selection }, key) {
     if (selection === null) {
+      parallelSelected = false;
       selections.delete(key); // Remove selection if no brush
     } else {
+      parallelSelected = true;
       const selectedRange = selection.map(y.get(key).invert);
       selections.set(key, selectedRange); // Store the selection range for this axis
     }
 
     const selected = [];
-    paths.each(function (d) {
+    const allPaths = d3.select("#parallel-coordinates").selectAll("path.line-coordinate");
+    allPaths.each(function (d) {
       const active = Array.from(selections).every(
         ([key, [min, max]]) => d[key] <= min && d[key] >= max
       );
